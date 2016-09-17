@@ -1,10 +1,9 @@
 open Base
 
 let printf = Printf.printf
-let st s = String.strip s
 
 let sayf format =
-  Printf.ksprintf (fun s -> print_endline (st s)) format
+  Printf.ksprintf (fun s -> print_endline (String.strip s)) format
 
 let prompt () =
   printf "\n>>> %!";

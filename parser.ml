@@ -22,7 +22,9 @@ let run words : Answer.t =
 
   | ["look"] | ["look";"around"] -> Look
 
-  | "open" :: "the" :: x | "open" :: x -> Open (c x)
+  | "open" :: "the" :: x | "open" :: x
+  | "unlock" :: "the" :: x | "unlock" :: x
+    -> Open (c x)
   | "enter" :: "the" :: x | "enter" :: x | "go" :: "in" :: x -> Enter (c x)
 
   | ["inventory"] | ["i"] -> Inventory

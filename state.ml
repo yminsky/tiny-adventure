@@ -70,7 +70,7 @@ let print_description (t:t) room =
   begin match Map.find t.descriptions room with
   | None -> ()
   | Some desc ->
-    print_endline (desc t)
+    print_endline (String.strip (desc t))
   end;
   match Map.find t.room_things room with
   | None -> ()
@@ -92,6 +92,7 @@ let save_exn t room =
   in
   let file = open_out save_filename in
   output_string file saveable;
+  output_string file "\n";
   close_out file
   
 let load_exn t =

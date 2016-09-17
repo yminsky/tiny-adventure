@@ -10,7 +10,7 @@ let state_ref =
     own location as an argument. This gives a natural way for room
     functions to know their own location, which turns out to be
     broadly useful. *)
-let register ?things room room_f room_desc =
+let register ?things room room_desc room_f =
   let state = !state_ref in
   let room_f = room_f room in
   let room_things =
@@ -115,18 +115,21 @@ You think back to your copy of Land of Stories, and are sad
 ;;
 
 
-let generic_road_desc = st {|
+let generic_road_desc = {|
 You are standing on the side of a deserted dirt road.  The sky is 
 gray, and there's a cold wind blowing. The road stretches to the 
 north and south.
 |}
 
-let house_desc = st {|
+let house_desc = {|
 You see a small wooden shed off to the east.
 |}
 
 let road_desc n _state =
-  if n = 0 then generic_road_desc ^ "\n\n" ^ house_desc
+  if n = 0 then 
+    String.strip generic_road_desc
+    ^ "\n\n"
+    ^ String.strip house_desc
   else generic_road_desc
 
 let rec road n here state : State.t * Room.t =
@@ -152,15 +155,15 @@ let rec road n here state : State.t * Room.t =
   | ans -> 
     otherwise ans ~things:["road";"dirt"] state here
 
-let () = register (Road 2) (road 2) (road_desc 2)
+let () = register (Road 2) (road_desc 2) (road 2)
 
-let shed_desc _ = st {|
+let shed_desc _ = {|
 You're standing in front of a gray shed with a rickety looking 
 door. There's a small plaque to the right of the door, and there
 are leaves and rocks scattered on the floor in front of the door.
 |}
 
-let plaque_desc = st {|
+let plaque_desc = {|
 Welcome intrepid adventurers! If you're here, then surely
 you're interested in a life of awesome exploits and terrifying
 danger that test your mettle. 
@@ -225,9 +228,9 @@ which you pick up.|};
   | ans -> 
     otherwise ans ~things:["shed";"door";"plaque";"leaves";"rocks"] state here
 
-let () = register Shed shed shed_desc
+let () = register Shed shed_desc shed
 
-let inside_shed_desc = st {|
+let inside_shed_desc _ = {|
 You're in a large room with smooth granite walls. There are torches 
 on the walls, which cast a wavering orange light.
 
@@ -261,12 +264,13 @@ The sign reads:
   | ans ->
     otherwise ans ~things:["wall";"walls";"torch";"torches";"sign"] state here
 
-let () = register Inside_shed inside_shed (Fn.const inside_shed_desc)
+let () = register Inside_shed inside_shed_desc inside_shed ;;
 
-let corridor_1_desc (state:State.t) =
-  if not (Set.mem state.inventory Torch) then
-    "It's pitch black. There's not much to see."
-  else st {|
+register Corridor_1
+  (fun (state:State.t) ->
+     if not (Set.mem state.inventory Torch) then
+       "It's pitch black. There's not much to see."
+     else {|
 The light from your torch flickers and highlights the deep scratches
 in the wall. Were they made by claws? As if to answer the question,
 you hear the sounds of scraping claws coming from the corridor ahead
@@ -274,25 +278,80 @@ of you.
 
 The corridor continues to the north, and back to the south from where
 you came.
-|}
-;;
-
-let corridor_1 here (state:State.t) : resp =
-  match prompt () with
-  | Dir _ when not (Set.mem state.inventory Torch) ->
-    sayf {|
+|})
+  (fun here (state:State.t) ->
+     match prompt () with
+     | Dir _ when not (Set.mem state.inventory Torch) ->
+       sayf {|
 Wandering around in the dark really is dangerous. As you try to
 make your way, you stumble over a rock and fall flat on your face. 
 Clearly something was lurking in the dark because the next moment, 
 you feel claws grab into your back. |};
-      (state,Game_over)
-  | Dir North ->
-    sayf "You continue down the corridor, until a large cavern opens up";
-    (state,Dragon_room)
-  | ans ->
-    otherwise ans ~things:[] state here
+       (state,Game_over)
+     | Dir North ->
+       sayf "You continue down the corridor, until a large cavern opens up";
+       (state,Dragon_room)
+     | ans ->
+       otherwise ans ~things:[] state here)
 ;;
 
-let () = register Corridor_1 corridor_1 corridor_1_desc
+register Corridor_2
+  (fun _ -> {|
+This east-west corridor is smooth-walled, with lit torches in,
+the walls.  The floors look like hundreds of thousands of
+footsteps have been beaten into it over the years.
+|})
+  (fun here (state:State.t) ->
+     match prompt () with
+     | Dir West -> (state, Inside_shed)
+     | Dir East -> (state, Armory)
+     | ans ->
+       otherwise ans ~things:[] state here)
+;;
+
+register Armory
+  ~things:[Sword]
+  (fun _ -> {|
+This is clearly an armory, which is to say a place where weapons
+were once stored. You can tell because of the racks on the walls
+that clearly once held pikes and swords and the like.
+
+But whatever it once was, it's now in disarray. There are piles
+of junk everywhere, mostly bits of wood and cloth that probably
+had some practical purpose once upon a time.
+|})
+  (fun here (state:State.t) ->
+     match prompt () with
+     | Dir West -> (state,Corridor_2)
+     | Look_at (Under,("junk"|"wood")) -> 
+       if Set.mem state.facts Armory_junk_examined then (
+         sayf {|
+Yawn. Your further examination of the junk bores you to tears.|};
+         (state,here)
+       ) else (
+         sayf {|
+You look under the piles of wood, and notice a stout-looking,
+round wooden shield. You pick it up for a moment, but, surprised
+by how light it is, the shield tumbles out of your hands. |};
+         let state =
+           { state with
+             facts = Set.add state.facts Armory_junk_examined
+           ; room_things =
+               Map.update state.room_things here ~f:(fun set_opt ->
+                 let set = 
+                   Option.value ~default:(Set.empty (module Thing))
+                     set_opt
+                 in
+                 Set.add set Shield)
+           }
+         in
+         (state,here)
+       )
+     | ans ->
+       otherwise ~things:["racks";"wood";"cloth";"junk"]
+         ans state here
+  )
+
+
 
 let () = State.run !state_ref (Road 2)
