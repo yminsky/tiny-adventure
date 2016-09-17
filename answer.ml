@@ -1,6 +1,6 @@
 open Import
 
-type direction = 
+type direction =
   | North
   | South
   | East

@@ -74,8 +74,9 @@ let otherwise ~things (ans:Answer.t) (state:State.t) (room:Room.t) =
     (state,room)
   | Read s ->
     if String.equal s "book" 
-    then sayf "You think back to your copy of Land of Stories, and are sad \n\
-               you don't have it with you."
+    then sayf {|
+You think back to your copy of Land of Stories, and are sad
+ you don't have it with you.|}
     else if List.mem things s 
     then sayf "That is hardly a gripping read."
     else sayf "I don't see a %s worth reading." s;
@@ -169,26 +170,35 @@ let shed here (state:State.t) : (_ * Room.t) =
     (state, here)
   | Open "door" ->
     if Set.mem state.inventory Rusty_key then (
-      sayf "You put the key in the lock and turn. It grinds to the right and \n\
-            the door swings open.";
+      sayf {|
+You put the key in the lock and turn. It grinds to the right and
+the door swings open.|};
       let state = { state with facts = Set.add state.facts Shed_door_is_open } in
       (state,here)
     ) else (
-      sayf "You try, but it's locked. It's surprisingly sturdy for \n\
-            a shack that looks pretty beat up.";
+      sayf {|
+You try, but it's locked. It's surprisingly sturdy for \n\
+a shack that looks pretty beat up.|};
       (state, here)
     )
   | Enter "door" ->
     if Set.mem state.facts Shed_door_is_open 
-    then (state,Inside_shed)
-    else (
-      sayf "You try to go in, but your nose runs painfully into the door.\n\
-            Next time you might want to try opening it first.";
+    then (
+      sayf {|
+You stop inside the shed and notice that it seems a good bit bigger
+on the inside than it did on the outside.|};
+      print_newline ();
+      (state,Inside_shed)
+    ) else (
+      sayf {|
+You try to go in, but your nose runs painfully into the door.
+Next time you might want to try opening it first.|};
       (state,here)
     )
   | Look_at "leaves" ->
-    sayf "You look at the leaves and see something glint.  Reaching down, \n\
-          you see a small, rusty key, which you pick up.";
+    sayf {|
+You look at the leaves and see something glint.  Reaching down,
+you see a small, rusty key, which you pick up.|};
     let state = 
       { state with
         inventory = Set.add state.inventory Rusty_key }
@@ -201,12 +211,8 @@ let () = register Shed shed shed_desc
 
 
 let inside_shed_desc = st {|
-You stop inside the shed and notice that it seems a good bit bigger
-on the inside than it did on the outside. You had to bend over to 
-get inside, but as you stand up and look around you realize you're
-in a large room with smooth granite walls.
-
-There are torches on the walls, which cast a wavering orange light.
+You're in a large room with smooth granite walls. There are torches 
+on the walls, which cast a wavering orange light.
 |}
 
 let inside_shed here (state:State.t) : (_ * Room.t) =
