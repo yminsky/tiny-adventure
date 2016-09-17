@@ -1,6 +1,7 @@
 open! Base
 
 let printf = Printf.printf
+let st = String.strip
 
 let sayf format =
   Printf.ksprintf print_endline format
@@ -110,13 +111,13 @@ let register room room_f =
                  rooms = Map.add (!state_ref).rooms ~key:room ~data:room_f 
                }
 
-let road_desc = String.strip {|
+let road_desc = st {|
 You are standing on the side of a deserted dirt road.  The sky is 
 gray, and there's a cold wind blowing. The road stretches to the 
 north and south.
 |}
 
-let house_desc = String.strip {|
+let house_desc = st {|
 You see a small wooden shed off to the east.
 |}
 
@@ -145,20 +146,32 @@ let rec road n state ~first_time : state * Room.t =
 
 let () = register (Road 2) (road 2)
 
-let shed_desc = String.strip {|
+let shed_desc = st {|
 You're standing in front of a gray shed with a rickety looking 
 door. There's a small plaque to the right of the door.
 |};;
+
+let intro = st {|
+Welcome intrepid adventurers! If you're here, then surely
+you're interested in a life of awesome exploits and terrifying
+danger that test your mettle. 
+
+If so, then your first test is whether you can find a way past
+the door.
+
+(Note from the proprieters: it's not yet possible to get through
+the door, but there will be soon.)
+|}
 
 let shed state ~first_time : (_ * Room.t) =
   if first_time then (print_endline shed_desc);
   match prompt () with
   | Dir West -> (state, Road 0)
   | Look "plaque" ->
-    sayf "It's a small bronze plaque";
+    sayf "It's a small bronze plaque, with intricate writing on it.";
     (state, Here)
   | Read "plaque" ->
-    sayf "The Hansfeld House. Abandon all hope ye who enter here.";
+    print_endline intro;
     (state, Here)
   | Open "door" ->
     sayf "You try, but it's locked. It's surprisingly sturdy for \n\
