@@ -12,7 +12,8 @@ module Answer = struct
     | Dir of direction
     | Take of string
     | Drop of string
-    | Look of string
+    | Look_at of string
+    | Look
     | Read of string
     | Open of string
     | Enter of string
@@ -29,10 +30,11 @@ let parse words : Answer.t =
   | ["go";"east"]  | ["e"] | ["east"]  -> Dir East
   | "take" :: "the" :: x | "take" :: x -> Take (c x)
   | "drop" :: "the" :: x | "drop" :: x -> Drop (c x)
-  |  "read" :: "the" :: x | "read" :: x -> Read (c x)
-  | "look" :: "at" :: "the" :: x | "look" :: "at" :: x -> Look (c x)
+  | "read" :: "the" :: x | "read" :: x -> Read (c x)
+  | "look" :: "at" :: "the" :: x | "look" :: "at" :: x -> Look_at (c x)
+  | ["look"] | ["look";"around"] -> Look
   | "open" :: "the" :: x | "open" :: x -> Open (c x)
-  | "enter" :: "the" :: x | "enter" :: x -> Enter (c x)
+  | "enter" :: "the" :: x | "enter" :: x | "go" :: "in" :: x -> Enter (c x)
   | ["inventory"] | ["i"] -> Inventory
   | s -> Other s
 
@@ -95,14 +97,14 @@ module Fact = struct
 end
 
 module State = struct
-  type room_f = 
-    t -> first_time:bool -> t * Room.t
+  type room_f = t -> t * Room.t
 
   and t = 
     { rooms : room_f Map.M(Room).t
     ; room_things : Set.M(Thing).t Map.M(Room).t
     ; inventory : Set.M(Thing).t
     ; facts : Set.M(Fact).t
+    ; descriptions : string Map.M(Room).t
     }
 
   let empty =
@@ -110,6 +112,7 @@ module State = struct
     ; room_things = Map.empty (module Room)
     ; inventory = Set.empty (module Thing)
     ; facts = Set.empty (module Fact)
+    ; descriptions = Map.empty (module Room)
     }
 
   let find_things_in_room t room =
@@ -143,17 +146,64 @@ let state_ref = ref State.empty
     own location as an argument. This gives a natural way for room
     functions to know their own location, which turns out to be
     broadly useful. *)
-let register room room_f =
+let register room room_f room_desc =
   let room_f = room_f room in
   state_ref :=
     { !state_ref with
       rooms = Map.add (!state_ref).rooms ~key:room ~data:room_f
+    ; descriptions = Map.add (!state_ref.descriptions) ~key:room ~data:room_desc
     }
 
 let drop state room thing_s =
-  match Thing.of_string thing_s with
-  | Some thing -> State.drop state room thing
-  | None -> None
+  let action = 
+    let open Option.Let_syntax in
+    let%bind thing = Thing.of_string thing_s in
+    State.drop state room thing
+  in
+  match action with
+  | Some state' -> (state',room)
+  | None ->
+    sayf "Well, you can't drop what you don't have.";
+    (state,room)
+;;
+
+let take state room thing_s = 
+  let action =
+    let open Option.Let_syntax in
+    let%bind thing = Thing.of_string thing_s in
+    State.take state room thing
+  in
+  match action with
+  | Some state' -> (state',room)
+  | None ->
+    sayf "I can't take that.";
+    (state,room)
+;;
+
+let print_description (state:State.t) room =
+  begin match Map.find state.descriptions room with
+  | None -> ()
+  | Some desc ->
+    print_endline desc
+  end;
+  match Map.find state.room_things room with
+  | None -> ()
+  | Some things ->
+    Set.iter things ~f:(fun thing ->
+      sayf "You see a %s" (Thing.to_string thing)
+    )
+;;
+
+let inventory (state:State.t) room =
+  if Set.is_empty state.inventory then (
+    sayf "Man, you got nothing.";
+    (state,room)
+  ) else (
+    Set.iter state.inventory ~f:(fun thing ->
+      sayf "You have a %s" (Thing.to_string thing));
+    (state,room)
+  )
+;;
 
 (** Default handling. This is meant to automate things that you'd
     otherwise have to implement in each room separately. *)
@@ -162,18 +212,12 @@ let otherwise ~things (ans:Answer.t) (state:State.t) (room:Room.t) =
   | Dir _ ->
     sayf "You can't go that way.";
     (state,room)
-  | Take s ->
-    sayf "I don't see a %s to take." s;
+  | Take s -> take state room s
+  | Drop s -> drop state room s
+  | Look ->
+    print_description state room;
     (state,room)
-  | Drop s ->
-    begin match drop state room s with
-    | None ->
-      sayf "Well, you can't drop what I don't have";
-      (state,room)
-    | Some state' ->
-      (state',room)
-    end
-  | Look s ->
+  | Look_at s ->
     begin
       if List.mem things s 
       then sayf "It looks like a perfectly ordinary %s." s
@@ -201,10 +245,7 @@ let otherwise ~things (ans:Answer.t) (state:State.t) (room:Room.t) =
   | Other ["help"] ->
     sayf "Oh, don't be such a baby. You can figure this out.";
     (state,room)
-  | Inventory ->
-    Set.iter state.inventory ~f:(fun thing ->
-      sayf "You have a %s" (Thing.to_string thing));
-    (state,room)
+  | Inventory -> inventory state room
   | Other _ ->
     sayf "Sorry, I didn't understand that.";
     (state,room)
@@ -212,7 +253,7 @@ let otherwise ~things (ans:Answer.t) (state:State.t) (room:Room.t) =
 ;;
 
 
-let road_desc = st {|
+let generic_road_desc = st {|
 You are standing on the side of a deserted dirt road.  The sky is 
 gray, and there's a cold wind blowing. The road stretches to the 
 north and south.
@@ -222,39 +263,40 @@ let house_desc = st {|
 You see a small wooden shed off to the east.
 |}
 
-let rec road n here state ~first_time : State.t * Room.t =
+let road_desc n =
+  if n = 0 then generic_road_desc ^ "\n\n" ^ house_desc
+  else generic_road_desc
+
+let rec road n here state : State.t * Room.t =
   let add_room m (state:State.t) =
+    let key = Room.Road m in
     let rooms = 
-      Map.add state.rooms
-        ~key:(Road m)
+      Map.add state.rooms ~key
         ~data:(road m (Room.Road m)) 
     in
-    { state with rooms }
+    let descriptions =
+      Map.add state.descriptions ~key
+        ~data:(road_desc m)
+    in
+    { state with rooms; descriptions }
   in
-  if first_time then (
-    print_endline road_desc;
-    if n = 0 then (
-      print_endline "";
-      print_endline house_desc
-    )
-  );
   match prompt () with
   | Dir North -> (add_room (n + 1) state, Road (n + 1))
   | Dir South -> (add_room (n - 1) state, Road (n - 1))
   | Dir East when n = 0 -> (state,Shed)
-  | Look "shed" when n = 0 ->
+  | Look_at "shed" when n = 0 ->
     sayf "It doesn't look like much from here. Maybe take a closer look?";
     (state,here)
   | ans -> 
     otherwise ans ~things:["road";"dirt"] state here
 
-let () = register (Road 2) (road 2)
+let () = register (Road 2) (road 2) (road_desc 2)
 
 let shed_desc = st {|
 You're standing in front of a gray shed with a rickety looking 
 door. There's a small plaque to the right of the door, and there
 are leaves and rocks scattered on the floor in front of the door.
-|};;
+|}
 
 let plaque_desc = st {|
 Welcome intrepid adventurers! If you're here, then surely
@@ -268,11 +310,10 @@ the door.
 the door, but there will be soon.)
 |}
 
-let shed here (state:State.t) ~first_time : (_ * Room.t) =
-  if first_time then (print_endline shed_desc);
+let shed here (state:State.t) : (_ * Room.t) =
   match prompt () with
   | Dir West -> (state, Road 0)
-  | Look "plaque" ->
+  | Look_at "plaque" ->
     sayf "It's a small bronze plaque, with intricate writing on it.";
     (state, here)
   | Read "plaque" ->
@@ -281,7 +322,7 @@ let shed here (state:State.t) ~first_time : (_ * Room.t) =
   | Open "door" ->
     if Set.mem state.inventory Rusty_key then (
       sayf "You put the key in the lock and turn. It grinds to the right and \n\
-            you the door swings open.";
+            the door swings open.";
       let state = { state with facts = Set.add state.facts Shed_door_is_open } in
       (state,here)
     ) else (
@@ -297,7 +338,7 @@ let shed here (state:State.t) ~first_time : (_ * Room.t) =
             Next time you might want to try opening it first.";
       (state,here)
     )
-  | Look "leaves" ->
+  | Look_at "leaves" ->
     sayf "You look at the leaves and see something glint.  Reaching down, \n\
           you see a small, rusty key, which you pick up.";
     let state = 
@@ -308,7 +349,7 @@ let shed here (state:State.t) ~first_time : (_ * Room.t) =
   | ans -> 
     otherwise ans ~things:["shed";"door";"plaque";"leaves";"rocks"] state here
 
-let () = register Shed shed
+let () = register Shed shed shed_desc
 
 
 let inside_shed_desc = st {|
@@ -320,13 +361,11 @@ in a large room with smooth granite walls.
 There are torches on the walls, which cast a wavering orange light.
 |}
 
-
-let inside_shed here (state:State.t) ~first_time : (_ * Room.t) =
-  if first_time then print_endline inside_shed_desc;
+let inside_shed here (state:State.t) : (_ * Room.t) =
   otherwise (prompt ()) ~things:["wall";"walls";"torch";"torches"]
     state here
 
-let () = register Inside_shed inside_shed
+let () = register Inside_shed inside_shed inside_shed_desc
 
 
 (** The runtime for executing the game *)
@@ -335,8 +374,8 @@ let rec run (state:State.t) ~old room =
   match Map.find state.rooms room with
   | None -> sayf "Huh. I'm lost. Game over."
   | Some f ->
-    let first_time = not (Room.equal old room) in
-    let (state',room') = f state ~first_time in
+    if not (Room.equal old room) then print_description state room;
+    let (state',room') = f state in
     run state' ~old:room room'
 
 let () =
