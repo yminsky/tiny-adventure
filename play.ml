@@ -1,42 +1,10 @@
-open! Base
+open! Import
 
 let printf = Printf.printf
 let st = String.strip
 
 let sayf format =
   Printf.ksprintf print_endline format
-
-module Answer = struct
-  type direction = North | South | East | West
-  type t =
-    | Dir of direction
-    | Take of string
-    | Drop of string
-    | Look_at of string
-    | Look
-    | Read of string
-    | Open of string
-    | Enter of string
-    | Inventory
-    | Other of string list
-end 
-
-let parse words : Answer.t =
-  let c = String.concat ~sep:" " in
-  match words with
-  | ["go";"north"] | ["n"] | ["north"] -> Dir North
-  | ["go";"south"] | ["s"] | ["south"] -> Dir South
-  | ["go";"west"]  | ["w"] | ["west"]  -> Dir West
-  | ["go";"east"]  | ["e"] | ["east"]  -> Dir East
-  | "take" :: "the" :: x | "take" :: x -> Take (c x)
-  | "drop" :: "the" :: x | "drop" :: x -> Drop (c x)
-  | "read" :: "the" :: x | "read" :: x -> Read (c x)
-  | "look" :: "at" :: "the" :: x | "look" :: "at" :: x -> Look_at (c x)
-  | ["look"] | ["look";"around"] -> Look
-  | "open" :: "the" :: x | "open" :: x -> Open (c x)
-  | "enter" :: "the" :: x | "enter" :: x | "go" :: "in" :: x -> Enter (c x)
-  | ["inventory"] | ["i"] -> Inventory
-  | s -> Other s
 
 let prompt () =
   printf "\n> %!";
@@ -50,51 +18,9 @@ let prompt () =
       >>| String.lowercase
       >>| String.filter ~f:Char.is_alphanum
     in
-    parse words
+    Parser.run words
 
 (** ROOMS **)
-
-module Room = struct
-  module T = struct
-    type t =
-      | Road of int
-      | Shed
-      | Inside_shed
-      | Nowhere
-    [@@deriving compare, sexp]
-  end
-  include T
-  include Comparable.Make(T)
-end
-
-
-module Thing = struct
-  module T = struct
-    type t = 
-      | Rusty_key
-    [@@deriving compare, sexp]
-  end
-  include T
-  include Comparable.Make(T)
-
-  let of_string s =
-    match s with
-    | "rusty key" -> Some Rusty_key
-    | _ -> None
-
-  let to_string = function
-    | Rusty_key -> "rusty key"
-end
-
-module Fact = struct
-  module T = struct
-    type t =
-      | Shed_door_is_open
-    [@@deriving compare, sexp]       
-  end
-  include T
-  include Comparable.Make(T)
-end
 
 module State = struct
   type room_f = t -> t * Room.t
