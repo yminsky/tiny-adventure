@@ -3,6 +3,8 @@ open! Base
 let run words : Answer.t =
   let c = String.concat ~sep:" " in
   match words with
+  | ["save"] -> Save
+  | ["load"] -> Load
   | ["go";"north"] | ["n"] | ["north"] -> Dir North
   | ["go";"south"] | ["s"] | ["south"] -> Dir South
   | ["go";"west"]  | ["w"] | ["west"]  -> Dir West

@@ -106,6 +106,8 @@ You think back to your copy of Land of Stories, and are sad
     sayf "Oh, don't be such a baby. You can figure this out.";
     (state,room)
   | Inventory -> inventory state room
+  | Save -> (state,Save)
+  | Load -> (state,Load)
   | Other _ ->
     sayf "Sorry, I didn't understand that.";
     (state,room)

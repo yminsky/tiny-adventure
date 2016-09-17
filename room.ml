@@ -11,7 +11,9 @@ module T = struct
     | Dragon_room
     | Armory
     | Game_over
-    | Win
+    | Exit
+    | Load
+    | Save
   [@@deriving compare, sexp]
 end
 include T

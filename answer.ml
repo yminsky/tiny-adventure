@@ -19,4 +19,6 @@ type t =
   | Open of string
   | Enter of string
   | Inventory
+  | Save
+  | Load
   | Other of string list
