@@ -11,6 +11,7 @@ module Answer = struct
   type t =
     | Dir of direction
     | Take of string
+    | Drop of string
     | Look of string
     | Read of string
     | Open of string
@@ -33,6 +34,7 @@ let parse : _ -> Answer.t = function
   | ["go";"west"]  | ["w"] | ["west"]  -> Dir West
   | ["go";"east"]  | ["e"] | ["east"]  -> Dir East
   | ["take";"the";x] | ["take";x] -> Take x
+  | ["drop";"the";x] | ["drop";x] -> Drop x
   | ["read";x] | [ "read"; "the"; x] -> Read x
   | ["look";"at";x] | [ "look"; "at";"the"; x] -> Look x
   | ["open";x] | ["open";"the";x] -> Open x
@@ -60,56 +62,94 @@ module Room = struct
       | Road of int
       | Shed
       | Nowhere
-      | Here
     [@@deriving compare, sexp]
   end
   include T
   include Comparable.Make(T)
 end
 
-let otherwise ~things (ans:Answer.t) state =
+let otherwise ~things (ans:Answer.t) state (room:Room.t) =
   begin match ans with
   | Dir _ ->
-    sayf "You can't go that way."
+    sayf "You can't go that way.";
+    (state,room)
   | Take s ->
-    sayf "I don't see a %s to take." s
+    sayf "I don't see a %s to take." s;
+    (state,room)
+  | Drop _ ->
+    sayf "You've got nothing to drop";
+    (state,room)
   | Look s ->
-    if List.mem things s 
-    then sayf "It looks like a perfectly ordinary %s." s
-    else printf "I see no %s here." s
+    begin
+      if List.mem things s 
+      then sayf "It looks like a perfectly ordinary %s." s
+      else printf "I see no %s here." s
+    end;
+    (state,room)
   | Read s ->
     if String.equal s "book" 
     then sayf "You think back to your copy of Land of Stories, and are sad \n\
                you don't have it with you."
-    else if List.mem things s then
-      sayf "That is hardly a gripping read."
-    else
-      sayf "I don't see a %s worth reading." s
+    else if List.mem things s 
+    then sayf "That is hardly a gripping read."
+    else sayf "I don't see a %s worth reading." s;
+    (state,room)
   | Open s ->
-    if List.mem things s 
-    then sayf "I don't know how to open that."
-    else sayf "I don't see a %s to open." s
+    (if List.mem things s 
+     then sayf "I don't know how to open that."
+     else sayf "I don't see a %s to open." s);
+    (state,room)
   | Other ["help"] ->
-    sayf "Oh, don't be such a baby. You can figure this out."
+    sayf "Oh, don't be such a baby. You can figure this out.";
+    (state,room)
   | Other _ ->
-    sayf "Sorry, I didn't understand that."
+    sayf "Sorry, I didn't understand that.";
+    (state,room)
   end;
-  (state,Room.Here)
 
-type room_f = 
-  state -> first_time:bool -> state * Room.t
 
-and state = 
-  { nothing : unit
-  ; rooms : room_f Map.M(Room).t }
+module State = struct
+  type room_f = 
+    t -> first_time:bool -> t * Room.t
+
+  and t = 
+    { room_things : Set.M(Thing).t Map.M(Room).t
+    ; rooms : room_f Map.M(Room).t
+    ; inventory : Set.M(Thing).t
+    }
+
+  type take_result = Taken of t | Not_taken
+
+  let take t room thing =
+    match Map.find t.room_things room with
+    | None -> Not_taken
+    | Some things_in_room ->
+      if not (Set.mem things_in_room thing) then Not_taken
+      else
+        let things_in_room = Set.remove things_in_room thing in
+        let inventory = Set.add t.inventory thing in
+        let room_things = Map.add t.room_things ~key:room ~data:things_in_room in
+        Taken { t with inventory; room_things }
+
+end
 
 let state_ref =
-  ref { rooms = Map.empty (module Room); nothing = () }
+  ref { State.
+        rooms = Map.empty (module Room)
+      ; inventory = Set.empty (module Thing)
+      ; room_things = Map.empty (module Room)
+      }
 
+(** Lets you register a room. Rooms must be functions that take their
+    own location as an argument. This gives a natural way for room
+    functions to know their own location, which turns out to be
+    broadly useful. *)
 let register room room_f =
-  state_ref := { !state_ref with 
-                 rooms = Map.add (!state_ref).rooms ~key:room ~data:room_f 
-               }
+  let room_f = room_f room in
+  state_ref :=
+    { !state_ref with
+      rooms = Map.add (!state_ref).rooms ~key:room ~data:room_f
+    }
 
 let road_desc = st {|
 You are standing on the side of a deserted dirt road.  The sky is 
@@ -121,10 +161,13 @@ let house_desc = st {|
 You see a small wooden shed off to the east.
 |}
 
-
-let rec road n state ~first_time : state * Room.t =
-  let add_room m state =
-    let rooms = Map.add state.rooms ~key:(Road m) ~data:(road m) in
+let rec road n here state ~first_time : State.t * Room.t =
+  let add_room m (state:State.t) =
+    let rooms = 
+      Map.add state.rooms
+        ~key:(Road m)
+        ~data:(road m (Room.Road m)) 
+    in
     { state with rooms }
   in
   if first_time then (
@@ -140,9 +183,9 @@ let rec road n state ~first_time : state * Room.t =
   | Dir East when n = 0 -> (state,Shed)
   | Look "shed" when n = 0 ->
     sayf "It doesn't look like much from here. Maybe take a closer look?";
-    (state,Road n)
+    (state,here)
   | ans -> 
-    otherwise ans ~things:["road";"dirt"] state
+    otherwise ans ~things:["road";"dirt"] state here
 
 let () = register (Road 2) (road 2)
 
@@ -163,34 +206,33 @@ the door.
 the door, but there will be soon.)
 |}
 
-let shed state ~first_time : (_ * Room.t) =
+let shed here state ~first_time : (_ * Room.t) =
   if first_time then (print_endline shed_desc);
   match prompt () with
   | Dir West -> (state, Road 0)
   | Look "plaque" ->
     sayf "It's a small bronze plaque, with intricate writing on it.";
-    (state, Here)
+    (state, here)
   | Read "plaque" ->
     print_endline intro;
-    (state, Here)
+    (state, here)
   | Open "door" ->
     sayf "You try, but it's locked. It's surprisingly sturdy for \n\
           a shack that looks pretty beat up.";
-    (state, Here)
+    (state, here)
   | ans -> 
-    otherwise ans ~things:["shed";"door";"plaque"] state
+    otherwise ans ~things:["shed";"door";"plaque"] state Shed
 
 let () = register Shed shed
 
 (** FINAL code *)
 
-let rec run state ~old room =
+let rec run (state:State.t) ~old room =
   match Map.find state.rooms room with
   | None -> sayf "Huh. I'm lost. Game over."
   | Some f ->
     let first_time = not (Room.equal old room) in
     let (state',room') = f state ~first_time in
-    let room' = if Room.equal room' Here then room else room' in
     run state' ~old:room room'
 
 let () =
