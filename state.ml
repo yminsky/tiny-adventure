@@ -7,7 +7,7 @@ and t =
   ; room_things : Set.M(Thing).t Map.M(Room).t
   ; inventory : Set.M(Thing).t
   ; facts : Set.M(Fact).t
-  ; descriptions : string Map.M(Room).t
+  ; descriptions : (t -> string) Map.M(Room).t
   }
 
 let empty =
@@ -45,22 +45,44 @@ let print_description (t:t) room =
   begin match Map.find t.descriptions room with
   | None -> ()
   | Some desc ->
-    print_endline desc
+    print_endline (desc t)
   end;
   match Map.find t.room_things room with
   | None -> ()
   | Some things ->
-    Set.iter things ~f:(fun thing ->
-      Util.sayf "You see a %s" (Thing.to_string thing)
+    if Set.is_empty things then ()
+    else (
+      print_newline ();
+      Set.iter things ~f:(fun thing ->
+        Util.sayf "You see a %s" (Thing.to_string thing))
     )
 
-let rec run' (t:t) ~old room =
-  match Map.find t.rooms room with
-  | None -> Util.sayf "Huh. I'm lost. Game over."
-  | Some f ->
-    if not (Room.equal old room) then print_description t room;
-    let (state',room') = f t in
-    run' state' ~old:room room'
+let rec run' t ~old room ~(game_over:unit -> unit) =
+  if Room.equal room Game_over then game_over ()
+  else match Map.find t.rooms room with
+    | None -> game_over ()
+    | Some f ->
+      if not (Room.equal old room) then print_description t room;
+      let (state',room') = f t in
+      run' state' ~old:room room' ~game_over
+;;
+
+let rec game_over ~start_room ~start_state () =
+  let huh () =
+    Util.sayf "Huh?";
+    game_over ~start_room ~start_state ()
+  in
+  print_newline ();
+  Util.sayf "Game over. Would you like to play again?";
+  match String.strip (String.lowercase (input_line stdin)) with
+  | "n" | "no" -> ()
+  | "y" | "yes" -> 
+    run' start_state ~old:Nowhere start_room
+      ~game_over:(game_over ~start_room ~start_state)
+  | exception _ -> huh ()
+  | _ -> huh ()
+;;    
 
 let run state room =
   run' state ~old:Nowhere room
+    ~game_over:(game_over ~start_room:room ~start_state:state)

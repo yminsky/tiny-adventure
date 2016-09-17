@@ -7,7 +7,7 @@ let sayf format =
   Printf.ksprintf (fun s -> print_endline (st s)) format
 
 let prompt () =
-  printf "\n> %!";
+  printf "\n>>> %!";
   match input_line stdin with
   | exception _ -> Other []
   | x ->
