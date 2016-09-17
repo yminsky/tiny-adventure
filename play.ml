@@ -1,7 +1,8 @@
 open! Import
 open Util
 
-let state_ref = ref State.empty
+let state_ref = 
+  ref State.empty
 
 (** Lets you register a room. Rooms must be functions that take their
     own location as an argument. This gives a natural way for room

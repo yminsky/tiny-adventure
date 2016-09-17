@@ -1,6 +1,10 @@
 open Import
 
-type direction = North | South | East | West
+type direction = 
+  | North
+  | South
+  | East
+  | West
 type t =
   | Dir of direction
   | Take of string
