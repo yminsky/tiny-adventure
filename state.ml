@@ -41,3 +41,26 @@ let drop t room thing =
     let room_things = Map.add t.room_things ~key:room ~data:things_in_room in
     Some { t with inventory; room_things }
 
+let print_description (t:t) room =
+  begin match Map.find t.descriptions room with
+  | None -> ()
+  | Some desc ->
+    print_endline desc
+  end;
+  match Map.find t.room_things room with
+  | None -> ()
+  | Some things ->
+    Set.iter things ~f:(fun thing ->
+      Util.sayf "You see a %s" (Thing.to_string thing)
+    )
+
+let rec run' (t:t) ~old room =
+  match Map.find t.rooms room with
+  | None -> Util.sayf "Huh. I'm lost. Game over."
+  | Some f ->
+    if not (Room.equal old room) then print_description t room;
+    let (state',room') = f t in
+    run' state' ~old:room room'
+
+let run state room =
+  run' state ~old:Nowhere room

@@ -1,8 +1,6 @@
 open! Import
 open Util
 
-(** ROOMS **)
-
 let state_ref = ref State.empty
 
 (** Lets you register a room. Rooms must be functions that take their
@@ -43,20 +41,6 @@ let take state room thing_s =
     (state,room)
 ;;
 
-let print_description (state:State.t) room =
-  begin match Map.find state.descriptions room with
-  | None -> ()
-  | Some desc ->
-    print_endline desc
-  end;
-  match Map.find state.room_things room with
-  | None -> ()
-  | Some things ->
-    Set.iter things ~f:(fun thing ->
-      sayf "You see a %s" (Thing.to_string thing)
-    )
-;;
-
 let inventory (state:State.t) room =
   if Set.is_empty state.inventory then (
     sayf "Man, you got nothing.";
@@ -78,7 +62,7 @@ let otherwise ~things (ans:Answer.t) (state:State.t) (room:Room.t) =
   | Take s -> take state room s
   | Drop s -> drop state room s
   | Look ->
-    print_description state room;
+    State.print_description state room;
     (state,room)
   | Look_at s ->
     begin
@@ -230,16 +214,4 @@ let inside_shed here (state:State.t) : (_ * Room.t) =
 
 let () = register Inside_shed inside_shed inside_shed_desc
 
-
-(** The runtime for executing the game *)
-
-let rec run (state:State.t) ~old room =
-  match Map.find state.rooms room with
-  | None -> sayf "Huh. I'm lost. Game over."
-  | Some f ->
-    if not (Room.equal old room) then print_description state room;
-    let (state',room') = f state in
-    run state' ~old:room room'
-
-let () =
-  run !state_ref ~old:Nowhere (Road 2)
+let () = State.run !state_ref (Road 2)

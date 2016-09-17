@@ -19,4 +19,3 @@ let prompt () =
       >>| String.filter ~f:Char.is_alphanum
     in
     Parser.run words
-
