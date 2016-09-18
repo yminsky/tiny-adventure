@@ -437,24 +437,24 @@ let dragon_with_both = {|
 The dragon looks like it's about to grab you in its teeth, when it
 notices the glint of your sword. Thinking better of it, the dragon's
 jaws open wide and gouts of fire pour out. You hide pathetically
-behind your shield, and, oddly, it works. Indeed, you feel an
-almost mechanical thrum as the shield glows and repels the fire,
-keeping you feeling oddly cool.
+behind your shield, and, oddly, it works. Indeed, you feel a
+mechanical thrum as the shield glows and repels the fire, keeping you
+feeling oddly cool.
 
-The dragon closes its mouth and looks at you, annoyed. With what
-you can only interpret as a shrug of resignation, it seems to come
-to a decision. It's head darts down and it makes a side-swiping 
-motion as if to knock the shield out of your hand. Instinctivly,
-you slash towards the onrushing head with your sword.
+The dragon closes its mouth and looks at you, annoyed. With what you
+can only interpret as a shrug of resignation, it seems to come to a
+decision. It's head darts down and it makes a side-swiping motion as
+if to knock the shield out of your hand. Instinctivly, you slash
+towards the onrushing head with your sword.
 
-Luckily, our sword is fully extended at just the time that the
-dragon's head is about to hit you. The dragon's eye smashes 
-directly into the tip of your sword, driving the tip deep into
-its skull, and nearly breaking your arm.
+Luckily, our sword is fully extended at just the time that the 
+dragon's head is about to hit you. The dragon's eye smashes directly
+into the tip of your sword, driving the tip deep into its skull, and
+nearly breaking your arm.
 
-You were knocked back on the floor, and the wind was knocked out
-of you. But after you catch your breath, you realize that no
-permanent damage was done.
+You were knocked back on the floor, and the wind was knocked out of
+you. But after you catch your breath, you realize that no permanent 
+damage was done.
 
 To you, anyway. The dragon seems to be permanently dead. |}
 ;;
