@@ -46,7 +46,6 @@ let rec generic_run n here state : run_response =
 module Make (M : sig val loc : int end)
   : State.Room_definition = struct
   open M
-  let loc = 0
   let here = Room.Road loc
   let things = []
   let desc = generic_desc loc

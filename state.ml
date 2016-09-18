@@ -7,10 +7,10 @@ type room_f = t -> t * Room.t
 
 and t = 
   { rooms        : room_f Map.M(Room).t
+  ; descriptions : (t -> string) Map.M(Room).t
   ; room_things  : Set.M(Thing).t Map.M(Room).t
   ; inventory    : Set.M(Thing).t
   ; facts        : Set.M(Fact).t
-  ; descriptions : (t -> string) Map.M(Room).t
   }
 
 let empty =
@@ -23,6 +23,14 @@ let empty =
 
 module Saveable = struct
   type full = t
+  (* Sadly, the Saveable.t doesn't have quite everything you need to
+     recover the worold. In particular, the descriptions and rooms
+     contain closures that can't be saved easily, and they're also
+     allowed to change, specifically for self-modifying parts of the
+     maze.  
+
+     The only solution right now is to try to make sure that the entry
+     points to the self-modifying bits are there at startup. *)
   type t =
     { room_things  : Set.M(Thing).t Map.M(Room).t
     ; inventory    : Set.M(Thing).t

@@ -4,10 +4,10 @@ type room_f = t -> t * Room.t
 
 and t = 
   { rooms        : room_f Map.M(Room).t
+  ; descriptions : (t -> string) Map.M(Room).t
   ; room_things  : Set.M(Thing).t Map.M(Room).t
   ; inventory    : Set.M(Thing).t
   ; facts        : Set.M(Fact).t
-  ; descriptions : (t -> string) Map.M(Room).t
   }
 
 val find_things_in_room : t -> Room.t -> Set.M(Thing).t
