@@ -65,39 +65,43 @@ let inventory (state:State.t) room =
 ;;
 
 let first_help = "Oh, don't be such a baby. You can figure this out."
-let second_help = {|
+let second_help_prelude = {|
 Ok, fine. I'll give you some hints. I can't stand to see you
-so hopeless.
+so hopeless.|}
+let third_help = {|
 
 If you want to know what you're carrying, you can type
 "inventory" (or "i", for short.)
 
-Also, if you want to see the description of a room again, type "look".
+Also, if you want to see the description of a room again, type
+"look".
 
 Other than that, just try things out! Trying to figure out what
 sentences I'll understand is part of the frustration, uh, I mean
 fun!
 |}
+let second_help = second_help_prelude ^ third_help
+
 
 (** Default handling. This is meant to automate things that you'd
     otherwise have to implement in each room separately. *)
-let otherwise ~things (ans:Answer.t) (state:State.t) (room:Room.t) =
+let otherwise ~things (ans:Answer.t) (state:State.t) (here:Room.t) =
   begin match ans with
   | Dir _ ->
     sayf "You can't go that way.";
-    (state,room)
-  | Take s -> take state room s
-  | Drop s -> drop state room s
+    (state,here)
+  | Take s -> take state here s
+  | Drop s -> drop state here s
   | Look ->
-    State.print_description state room;
-    (state,room)
+    State.print_description state here;
+    (state,here)
   | Look_at (_,s) ->
     begin
       if List.mem things s 
       then sayf "It looks like a perfectly ordinary %s." s
       else printf "I see no %s here." s
     end;
-    (state,room)
+    (state,here)
   | Read s ->
     if String.equal s "book" 
     then sayf {|
@@ -106,31 +110,34 @@ You think back to your copy of Land of Stories, and are sad
     else if List.mem things s 
     then sayf "That is hardly a gripping read."
     else sayf "I don't see a %s worth reading." s;
-    (state,room)
+    (state,here)
   | Open s ->
     (if List.mem things s 
      then sayf "I don't know how to open that."
      else sayf "I don't see a %s to open." s);
-    (state,room)
+    (state,here)
   | Enter s ->
     if List.mem things s
     then (sayf "I can't enter that!")
     else (sayf "I don't see a %s to enter" s);
-    (state,room)
+    (state,here)
   | Help ->
     if not (State.is_fact state Asked_for_help) then (
       sayf "%s" first_help;
-      (State.assert_fact state Asked_for_help, room)
-    ) else (
+      (State.assert_fact state Asked_for_help, here)
+    ) else if not (State.is_fact state Asked_for_help_again) then (
       sayf "%s" second_help;
-      (state, room)
+      (State.assert_fact state Asked_for_help_again, here)
+    ) else (
+      sayf "%s" third_help;
+      (state,here)
     )
-  | Inventory -> inventory state room
+  | Inventory -> inventory state here
   | Save -> (state,Save)
   | Load -> (state,Load)
   | Other _ ->
     sayf "Sorry, I didn't understand that.";
-    (state,room)
+    (state,here)
   end
 ;;
 

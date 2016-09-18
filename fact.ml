@@ -6,6 +6,7 @@ module T = struct
     | Armory_junk_examined
     | Dragon_is_dead
     | Asked_for_help
+    | Asked_for_help_again
   [@@deriving compare, sexp]       
 end
 include T
