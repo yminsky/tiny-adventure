@@ -8,11 +8,11 @@ module T = struct
   (** Special rooms that are really messages to the runtime, rather
       than ordinary rooms. *)
   type special =
-    | Game_over
     | Exit
+    | Game_over
     | Load
-    | Save
     | Nowhere
+    | Save
   [@@deriving compare, sexp, enumerate]
 
   type t =
