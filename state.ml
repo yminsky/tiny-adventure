@@ -1,5 +1,7 @@
 open Base
-open Util
+
+let sayf format =
+  Printf.ksprintf (fun s -> print_endline (String.strip s)) format
 
 type room_f = t -> t * Room.t
 
