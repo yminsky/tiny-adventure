@@ -325,10 +325,10 @@ you came.
      match prompt () with
      | Dir _ when not (Set.mem state.inventory Torch) ->
        sayf {|
-Wandering around in the dark really is dangerous. As you try to
-make your way, you stumble over a rock and fall flat on your face. 
-Clearly something was lurking in the dark because the next moment, 
-you feel claws grab into your back. |};
+Wandering around in the dark really is dangerous. As you try to make
+your way, you stumble over a rock and fall flat on your face. Clearly
+something was lurking in the dark because the next moment, you feel
+claws grab into your back. |};
        (state,Game_over)
      | Dir North ->
        sayf "You continue down the corridor, until a large cavern opens up";
@@ -356,13 +356,13 @@ footsteps have been beaten into it over the years.
 register Armory
   ~things:[Sword]
   (fun _ -> {|
-This is clearly an armory, which is to say a place where weapons
-were once stored. You can tell because of the racks on the walls
-that clearly once held pikes and swords and the like.
+This is clearly an armory, which is to say a place where weapons were
+once stored. You can tell because of the racks on the walls that
+clearly once held pikes and swords and the like.
 
-But whatever it once was, it's now in disarray. There are piles
-of junk everywhere, mostly bits of wood and cloth that probably
-had some practical purpose once upon a time.
+But whatever it once was, it's now in disarray. There are piles of
+junk everywhere, mostly bits of wood and cloth that probably had some
+practical purpose once upon a time.
 |})
   (fun here (state:State.t) ->
      match prompt () with
@@ -374,9 +374,9 @@ Yawn. Your further examination of the junk bores you to tears.|};
          (state,here)
        ) else (
          sayf {|
-You look under the piles of wood, and notice a stout-looking,
-round wooden shield. You pick it up for a moment, but, surprised
-by how light it is, you let the shield tumble out of your hands. |};
+You look under the piles of wood, and notice a stout-looking, round
+wooden shield. You pick it up for a moment, but, surprised by how
+light it is, you let the shield tumble out of your hands. |};
          let state =
            { state with
              facts = Set.add state.facts Armory_junk_examined
@@ -398,37 +398,35 @@ by how light it is, you let the shield tumble out of your hands. |};
 ;;
 
 let dead_dragon = {|
-You see the dragon's body lying on the floor in front of you, 
-your sword sticking out if its eye, and blood dripping out.
-Frankly, you're shocked you're still alive.
+You see the dragon's body lying on the floor in front of you, your
+sword sticking out if its eye, and blood dripping out. Frankly, you're
+shocked you're still alive.
 
 There is an exit to the north and south.|}
 
 let dragon_prelude = {|
-There is a dragon, as silent as stone, and its head as large 
-as your entire body. The cavern itself is enormous and oddly 
-beautiful, with crystals in the wall that glint back at you
-like stars in the sky.|}
+There is a dragon, as silent as stone, and its head as large as your
+entire body. The cavern itself is enormous and oddly beautiful, with
+crystals in the wall that glint back at you like stars in the sky.|}
 
 let dragon_unarmed = {|
-But you only have a moment to enjoy it. The dragon's head darts 
-down, grabbing your entire body with its long, razor-sharp teeth.
-You feel a moment of embarrassment that you weren't scared off by
-the claw marks, mixed with intense pain.|}
+But you only have a moment to enjoy it. The dragon's head darts down,
+grabbing your entire body with its long, razor-sharp teeth. You feel
+a moment of embarrassment that you weren't scared off by the claw
+marks, mixed with intense pain.|}
 
 let dragon_with_sword = {|
-The dragon's head looks like it's about to descend upon you when 
-it appears to notice the sword in your hand. Not interested in
-getting its eye poked out, it instead opens its terrifying jaws
-and gouts of fire emerge, engulfing you, and burning your body
-to a crisp. 
+The dragon's head looks like it's about to descend upon you when it
+appears to notice the sword in your hand. Not interested in getting
+its eye poked out, it instead opens its terrifying jawsand gouts of
+fire emerge, engulfing you, and burning your body to a crisp. 
 
 Mercifully, it didn't last long.|}
 
 let dragon_with_shield = {|
-With a stunningly fast side-swipe motion, the dragon knocks the 
-shield out of your hand, nearly tacking your hand with it. Then,
-it's enormous jaws open wide and close over your head.
+With a stunningly fast side-swipe motion, the dragon knocks the shield
+out of your hand, nearly tacking your hand with it. Then, its enormous
+jaws open wide and close over your head.
 
 The dragon's tonsils are the last thing you ever see.
 |}
