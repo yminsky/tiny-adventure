@@ -3,7 +3,10 @@ open Base
 module T = struct
   type road_spots = int
   [@@deriving compare, sexp]
+  let all_of_road_spots = [2]
 
+  (** Special rooms that are really messages to the runtime, rather
+      than ordinary rooms. *)
   type special =
     | Game_over
     | Exit
@@ -11,8 +14,6 @@ module T = struct
     | Save
     | Nowhere
   [@@deriving compare, sexp, enumerate]
-
-  let all_of_road_spots = [2]
 
   type t =
     | Road of road_spots
