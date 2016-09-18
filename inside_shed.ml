@@ -1,6 +1,6 @@
 open Import
 
-let room = Room.Inside_shed
+let here = Room.Inside_shed
 let things = []
 
 let desc _ = {|
@@ -12,7 +12,7 @@ attached to the wall, though you're not sure what's keeping it
 there.
 |}
 
-let run here (state:State.t) : run_response =
+let run (state:State.t) : run_response =
   match prompt () with
   | Dir North ->
     (state,Corridor_1)

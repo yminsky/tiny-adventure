@@ -1,6 +1,6 @@
 open Import
 
-let room = Room.Corridor_1
+let here = Room.Corridor_1
 let things = []
 
 let desc (state:State.t) =
@@ -16,7 +16,7 @@ The corridor continues to the north, and back to the south from where
 you came.
 |}
 
-let run here (state:State.t) : run_response =
+let run (state:State.t) : run_response =
   match prompt () with
   | Dir _ when not (Set.mem state.inventory Torch) ->
     sayf {|

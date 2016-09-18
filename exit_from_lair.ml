@@ -1,6 +1,6 @@
 open Import
 
-let room = Room.Exit_from_lair
+let here = Room.Exit_from_lair
 let things = []
 let desc _ = {|
 The corridor out of the lair angles up, and soon enough you can feel a
@@ -15,4 +15,4 @@ Congratulations. You've survived to live another day.
 
 If you want to keep that up, I recommend going on fewer adventures.|}
 
-let run _ state : run_response = (state,Special Exit)
+let run state : run_response = (state,Special Exit)

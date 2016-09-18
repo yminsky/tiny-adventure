@@ -43,8 +43,8 @@ let rec generic_run n here state : run_response =
   | ans -> 
     otherwise ans ~things:["road";"dirt"] state here
 
-let room = Room.Road 2
+let here = Room.Road 2
 let things = []
 let desc = generic_desc 2
-let run = generic_run 2
+let run = generic_run 2 here
 

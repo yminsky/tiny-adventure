@@ -1,6 +1,6 @@
 open Import
 
-let room = Room.Dragon_lair
+let here = Room.Dragon_lair
 let things = []
 
 let dead_dragon = {|
@@ -68,7 +68,7 @@ let desc state =
   then dead_dragon
   else dragon_prelude
 
-let run here (state:State.t) : run_response =
+let run (state:State.t) : run_response =
   if State.is_fact state Dragon_is_dead then (
     match prompt () with
     | Take "sword" ->

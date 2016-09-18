@@ -3,9 +3,9 @@
 open! Base
 
 module type Room_definition = sig
-  val room : Room.t
+  val here : Room.t
   val desc : State.t -> string
-  val run : Room.t -> State.t -> State.t * Room.t
+  val run : State.t -> State.t * Room.t
   val things : Thing.t list
 end
 

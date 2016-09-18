@@ -1,6 +1,6 @@
 open Import
 
-let room = Room.Armory
+let here = Room.Armory
 let things : Thing.t list = [Sword]
 
 let desc _ = {|
@@ -13,7 +13,7 @@ junk everywhere, mostly bits of wood and cloth that probably had some
 practical purpose once upon a time.
 |}
 
-let run here (state:State.t) : run_response =
+let run (state:State.t) : run_response =
   match prompt () with
   | Dir West -> (state,Corridor_2)
   | Look_at (Under,("junk"|"wood")) -> 

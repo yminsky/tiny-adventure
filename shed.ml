@@ -1,6 +1,6 @@
 open Import
 
-let room = Room.Shed
+let here = Room.Shed
 let things = []
 
 let desc _ = {|
@@ -21,7 +21,7 @@ the door.
 the door, but there will be soon.)
 |}
 
-let run here (state:State.t) : run_response =
+let run (state:State.t) : run_response =
   match prompt () with
   | Dir West -> (state, Road 0)
   | Look_at (_,"plaque") ->
