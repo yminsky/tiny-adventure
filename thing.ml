@@ -11,16 +11,17 @@ end
 include T
 include Comparable.Make(T)
 
-let of_string s =
-  match s with
-  | "rusty key" -> Some Rusty_key
-  | "torch" -> Some Torch
-  | "sword" -> Some Sword
-  | "shield" -> Some Shield
-  | _ -> None
+(* Terrible abuse of sexp converters to get printing and parsing on
+   the cheap *)
 
-let to_string = function
-  | Rusty_key -> "rusty key"
-  | Torch -> "torch"
-  | Sword -> "sword"
-  | Shield -> "shield"
+let of_string s =
+  let s = String.tr ~target:' ' ~replacement:'_' s in
+  match t_of_sexp (Sexplib.Sexp.of_string s) with
+  | x -> Some x
+  | exception _ -> None
+
+let to_string t =
+  sexp_of_t t
+  |> Sexplib.Sexp.to_string
+  |> String.lowercase
+  |> String.tr ~target:'_' ~replacement:' '
