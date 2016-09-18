@@ -4,8 +4,7 @@ type run_response = State.t * Room.t
 
 let printf = Printf.printf
 
-let sayf format =
-  Printf.ksprintf (fun s -> print_endline (String.strip s)) format
+let sayf = State.sayf
 
 let prompt () =
   printf "\n>>> %!";

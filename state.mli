@@ -20,5 +20,9 @@ val is_fact : t -> Fact.t -> bool
 
 val print_description : t -> Room.t -> unit
 
-(* Executes the game *)
+(** Executes the game *)
 val run : t -> Room.t -> unit
+
+(** We export this here so it doesn't need to be defined again in
+    Util *)
+val sayf : ('a, unit, string, unit) format4 -> 'a
