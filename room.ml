@@ -1,9 +1,14 @@
 open Base
 
 module T = struct
+  type road_spots = int
+  [@@deriving compare, sexp]
+
+  let all_of_road_spots = [2]
+
   type t =
     | Nowhere
-    | Road of int
+    | Road of road_spots
     | Shed
     | Inside_shed
     | Corridor_1
@@ -15,7 +20,7 @@ module T = struct
     | Exit
     | Load
     | Save
-  [@@deriving compare, sexp]
+  [@@deriving compare, sexp, enumerate]
 end
 include T
 include Comparable.Make(T)
