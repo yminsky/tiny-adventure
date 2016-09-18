@@ -1,4 +1,4 @@
-open Import
+open Base
 
 type direction =
   | North
@@ -7,7 +7,6 @@ type direction =
   | West
 
 type how_to_look = At | Under
-  
 
 type t =
   | Dir of direction
