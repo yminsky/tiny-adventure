@@ -1,3 +1,2 @@
-open Import
-include Room_definition
+include State.Room_definition
     
