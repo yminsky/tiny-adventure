@@ -173,3 +173,27 @@ let rec make_game_over ~start_room ~start_state () =
 let run state room =
   run' state ~old:(Special Nowhere) room
     ~game_over:(make_game_over ~start_room:room ~start_state:state)
+
+(* Room generation *)
+
+module type Room_definition = sig
+  val here : Room.t
+  val desc : t -> string
+  val run : t -> t * Room.t
+  val things : Thing.t list
+end
+
+let add_room t (module R : Room_definition) =
+  let room_things = 
+    match R.things with
+    | [] -> t.room_things
+    | things ->
+      Map.add t.room_things ~key:R.here
+        ~data:(Set.of_list (module Thing) things)
+  in
+  let rooms = Map.add t.rooms ~key:R.here ~data:R.run in
+  let descriptions = Map.add t.descriptions ~key:R.here ~data:R.desc in
+  { t with rooms; descriptions; room_things }
+
+let of_rooms rooms =
+  List.fold rooms ~init:empty ~f:add_room

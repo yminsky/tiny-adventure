@@ -17,4 +17,4 @@ let rooms =
 ;;
 
 let () = 
-  State.run (State_maker.state_of_rooms rooms) (Road 2)
+  State.run (State.of_rooms rooms) (Road 2)
