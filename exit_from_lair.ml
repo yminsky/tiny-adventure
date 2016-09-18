@@ -15,4 +15,4 @@ Congratulations. You've survived to live another day.
 
 If you want to keep that up, I recommend going on fewer adventures.|}
 
-let run _ state : run_response = (state,Exit)
+let run _ state : run_response = (state,Special Exit)

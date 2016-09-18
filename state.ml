@@ -120,27 +120,30 @@ let rec run'
           ~(game_over:unit -> unit)
   =
   match room with
-  | Game_over -> game_over ()
-  | Exit -> ()
-  | Save -> 
-    begin match save_exn t old with
-    | () -> 
-      sayf "Your game has been saved";
-      run' t ~old old ~game_over
-    | exception exn ->
-      sayf "Hmm. That didn't work. I'm not sure why. Here's the exception:";
-      print_endline (Exn.to_string exn);
-      run' t ~old old ~game_over
-    end
-  | Load ->
-    begin match load_exn t with
-    | (t,room) ->
-      sayf "Old game loaded!";
-      run' t ~old:Nowhere room ~game_over
-    | exception exn ->
-      sayf "Well, that was unexpected. Your load failed. Here's what I got:";
-      print_endline (Exn.to_string exn);
-      run' t ~old old ~game_over
+  | Special special ->
+    begin match special with
+    | Game_over -> game_over ()
+    | Exit | Nowhere -> ()
+    | Save -> 
+      begin match save_exn t old with
+      | () -> 
+        sayf "Your game has been saved";
+        run' t ~old old ~game_over
+      | exception exn ->
+        sayf "Hmm. That didn't work. I'm not sure why. Here's the exception:";
+        print_endline (Exn.to_string exn);
+        run' t ~old old ~game_over
+      end
+    | Load ->
+      begin match load_exn t with
+      | (t,room) ->
+        sayf "Old game loaded!";
+        run' t ~old:(Special Nowhere) room ~game_over
+      | exception exn ->
+        sayf "Well, that was unexpected. Your load failed. Here's what I got:";
+        print_endline (Exn.to_string exn);
+        run' t ~old old ~game_over
+      end
     end
   | _ -> 
     match Map.find t.rooms room with
@@ -161,12 +164,12 @@ let rec make_game_over ~start_room ~start_state () =
   match String.strip (String.lowercase (input_line stdin)) with
   | "n" | "no" -> ()
   | "y" | "yes" -> 
-    run' start_state ~old:Nowhere start_room
+    run' start_state ~old:(Special Nowhere) start_room
       ~game_over:(make_game_over ~start_room ~start_state)
   | exception _ -> huh ()
   | _ -> huh ()
 ;;    
 
 let run state room =
-  run' state ~old:Nowhere room
+  run' state ~old:(Special Nowhere) room
     ~game_over:(make_game_over ~start_room:room ~start_state:state)

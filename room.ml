@@ -4,10 +4,17 @@ module T = struct
   type road_spots = int
   [@@deriving compare, sexp]
 
+  type special =
+    | Game_over
+    | Exit
+    | Load
+    | Save
+    | Nowhere
+  [@@deriving compare, sexp, enumerate]
+
   let all_of_road_spots = [2]
 
   type t =
-    | Nowhere
     | Road of road_spots
     | Shed
     | Inside_shed
@@ -16,10 +23,7 @@ module T = struct
     | Dragon_lair
     | Exit_from_lair
     | Armory
-    | Game_over
-    | Exit
-    | Load
-    | Save
+    | Special of special
   [@@deriving compare, sexp, enumerate]
 end
 include T

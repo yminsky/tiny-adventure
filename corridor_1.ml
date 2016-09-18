@@ -24,7 +24,7 @@ Wandering around in the dark really is dangerous. As you try to make
 your way, you stumble over a rock and fall flat on your face. Clearly
 something was lurking in the dark because the next moment, you feel
 claws grab into your back. |};
-    (state,Game_over)
+    (state,Special Game_over)
   | Dir North ->
     sayf "You continue down the corridor, until a large cavern opens up";
     (state,Dragon_lair)

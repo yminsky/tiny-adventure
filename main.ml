@@ -4,7 +4,7 @@ open Import
 let rooms =
   let room (m : (module Room_definition)) = Some m in
   List.filter_map Room.all ~f:(function
-    | Nowhere | Game_over | Exit | Load | Save -> None
+    | Special _ -> None
     | Armory         -> room (module Armory)
     | Corridor_1     -> room (module Corridor_1)
     | Corridor_2     -> room (module Corridor_2)

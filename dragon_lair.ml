@@ -90,13 +90,13 @@ that you can't yank it out.|};
     match has_sword, has_shield with
     | false, false ->
       sayf "%s" dragon_unarmed;
-      (state,Game_over)
+      (state,Special Game_over)
     | true, false ->
       sayf "%s" dragon_with_sword;
-      (state, Game_over)
+      (state, Special Game_over)
     | false, true ->
       sayf "%s" dragon_with_shield;
-      (state, Game_over)
+      (state, Special Game_over)
     | true, true ->
       sayf "%s" dragon_with_both;
       let state =

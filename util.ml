@@ -135,9 +135,9 @@ You think back to your copy of Land of Stories, and are sad
       (state,here)
     )
   | Inventory -> inventory state here
-  | Save -> (state,Save)
-  | Load -> (state,Load)
-  | Exit -> (state,Exit)
+  | Save -> (state,Special Save)
+  | Load -> (state,Special Load)
+  | Exit -> (state,Special Exit)
   | Other _ ->
     sayf "Sorry, I didn't understand that.";
     (state,here)
