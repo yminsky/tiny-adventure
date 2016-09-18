@@ -82,6 +82,13 @@ fun!
 |}
 let second_help = second_help_prelude ^ third_help
 
+let singular s =
+  match String.get s (String.length s - 1) with
+  | 's' -> false
+  | _ -> true
+  | exception _ -> true
+;;
+
 
 (** Default handling. This is meant to automate things that you'd
     otherwise have to implement in each room separately. *)
@@ -98,8 +105,11 @@ let otherwise ~things (ans:Answer.t) (state:State.t) (here:Room.t) =
   | Look_at (_,s) ->
     begin
       if List.mem things s 
-      then sayf "It looks like a perfectly ordinary %s." s
-      else printf "I see no %s here." s
+      then (
+        if singular s
+        then sayf "It looks like a perfectly ordinary %s." s
+        else sayf "They look like perfectly ordinary %s." s
+      ) else printf "I see no %s here." s
     end;
     (state,here)
   | Read s ->
@@ -237,11 +247,16 @@ Next time you might want to try opening it first.|};
       (state,here)
     )
   | Look_at (At,"leaves") ->
-    sayf {|
+    if not (State.is_fact state Rusty_key_was_found) then (
+      sayf {|
 They look brown and crinkly. You think you catch a glint of 
-something underneath, though... |};
+something underneath, though... |}
+    ) else (
+      sayf "They look brown and crinkly."
+    );
     (state,here)
-  | Look_at (Under,"leaves") ->
+  | Look_at (Under,"leaves") 
+    when not (State.is_fact state Rusty_key_was_found) ->
     sayf {|
 You move the leaves aside, and you see a small, rusty key,
 which you pick up.|};
@@ -249,7 +264,7 @@ which you pick up.|};
       { state with
         inventory = Set.add state.inventory Rusty_key }
     in
-    (state, here)
+    (State.assert_fact state Rusty_key_was_found, here)
   | ans -> 
     otherwise ans ~things:["shed";"door";"plaque";"leaves";"rocks"] state here
 
@@ -274,12 +289,14 @@ let inside_shed here (state:State.t) : (_ * Room.t) =
     sayf {|
 The sign reads: 
 
-    Welcome! Really, you should probably have stayed outside, 
-    but now you're stuck. You should probably try to find 
-    your way out, and avoid getting eaten, while you're at it.
+    Welcome! Really, you should have stayed outside, but now you're
+    stuck. You should probably try to find your way out, and avoid
+    getting eaten, while you're at it.
 
     Just a warning: darkness is dangerous. You might want to
     take a torch.
+
+    Signed: The Management
 |};
     (state,here)
   | Take "torch" ->
@@ -316,6 +333,8 @@ you feel claws grab into your back. |};
      | Dir North ->
        sayf "You continue down the corridor, until a large cavern opens up";
        (state,Dragon_lair)
+     | Dir South ->
+       (state,Inside_shed)
      | ans ->
        otherwise ans ~things:[] state here)
 ;;
@@ -357,7 +376,7 @@ Yawn. Your further examination of the junk bores you to tears.|};
          sayf {|
 You look under the piles of wood, and notice a stout-looking,
 round wooden shield. You pick it up for a moment, but, surprised
-by how light it is, the shield tumbles out of your hands. |};
+by how light it is, you let the shield tumble out of your hands. |};
          let state =
            { state with
              facts = Set.add state.facts Armory_junk_examined

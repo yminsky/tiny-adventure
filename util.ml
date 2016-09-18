@@ -12,7 +12,7 @@ let prompt () =
   | x ->
     let words = 
       let open List.Let_syntax in
-      String.split x ~on:' '
+      String.split (String.strip x) ~on:' '
       >>| String.strip
       >>| String.lowercase
       >>| String.filter ~f:Char.is_alphanum

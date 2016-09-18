@@ -7,6 +7,7 @@ module T = struct
     | Dragon_is_dead
     | Asked_for_help
     | Asked_for_help_again
+    | Rusty_key_was_found
   [@@deriving compare, sexp]       
 end
 include T
