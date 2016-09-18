@@ -31,7 +31,8 @@ include Comparable.Make(T)
 
 
 
-(*
+(* A little map.
+
    DR-EX
    | 
    C1
