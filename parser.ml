@@ -28,6 +28,7 @@ let run words : Answer.t =
   | "enter" :: "the" :: x | "enter" :: x | "go" :: "in" :: x -> Enter (c x)
 
   | ["inventory"] | ["i"] -> Inventory
+  | ["help"] | ["help";"me"] -> Help
 
   | s -> Other s
 

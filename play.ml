@@ -64,6 +64,21 @@ let inventory (state:State.t) room =
   )
 ;;
 
+let first_help = "Oh, don't be such a baby. You can figure this out."
+let second_help = {|
+Ok, fine. I'll give you some hints. I can't stand to see you
+so hopeless.
+
+If you want to know what you're carrying, you can type
+"inventory" (or "i", for short.)
+
+Also, if you want to see the description of a room again, type "look".
+
+Other than that, just try things out! Trying to figure out what
+sentences I'll understand is part of the frustration, uh, I mean
+fun!
+|}
+
 (** Default handling. This is meant to automate things that you'd
     otherwise have to implement in each room separately. *)
 let otherwise ~things (ans:Answer.t) (state:State.t) (room:Room.t) =
@@ -102,9 +117,14 @@ You think back to your copy of Land of Stories, and are sad
     then (sayf "I can't enter that!")
     else (sayf "I don't see a %s to enter" s);
     (state,room)
-  | Other ["help"] ->
-    sayf "Oh, don't be such a baby. You can figure this out.";
-    (state,room)
+  | Help ->
+    if not (State.is_fact state Asked_for_help) then (
+      sayf "%s" first_help;
+      (State.assert_fact state Asked_for_help, room)
+    ) else (
+      sayf "%s" second_help;
+      (state, room)
+    )
   | Inventory -> inventory state room
   | Save -> (state,Save)
   | Load -> (state,Load)
@@ -189,8 +209,7 @@ let shed here (state:State.t) : (_ * Room.t) =
       sayf {|
 You put the key in the lock and turn. It grinds to the right and
 the door swings open.|};
-      let state = { state with facts = Set.add state.facts Shed_door_is_open } in
-      (state,here)
+      (State.assert_fact state Shed_door_is_open, here)
     ) else (
       sayf {|
 You try, but it's locked. It's surprisingly sturdy for \n\
@@ -198,8 +217,7 @@ a shack that looks pretty beat up.|};
       (state, here)
     )
   | Enter "door" ->
-    if Set.mem state.facts Shed_door_is_open 
-    then (
+    if State.is_fact state Shed_door_is_open then (
       sayf {|
 You stop inside the shed and notice that it seems a good bit bigger
 on the inside than it did on the outside.|};
@@ -290,7 +308,7 @@ you feel claws grab into your back. |};
        (state,Game_over)
      | Dir North ->
        sayf "You continue down the corridor, until a large cavern opens up";
-       (state,Dragon_room)
+       (state,Dragon_lair)
      | ans ->
        otherwise ans ~things:[] state here)
 ;;
@@ -324,7 +342,7 @@ had some practical purpose once upon a time.
      match prompt () with
      | Dir West -> (state,Corridor_2)
      | Look_at (Under,("junk"|"wood")) -> 
-       if Set.mem state.facts Armory_junk_examined then (
+       if State.is_fact state Armory_junk_examined then (
          sayf {|
 Yawn. Your further examination of the junk bores you to tears.|};
          (state,here)
@@ -351,7 +369,133 @@ by how light it is, the shield tumbles out of your hands. |};
        otherwise ~things:["racks";"wood";"cloth";"junk"]
          ans state here
   )
+;;
 
+let dead_dragon = {|
+You see the dragon's body lying on the floor in front of you, 
+your sword sticking out if its eye, and blood dripping out.
+Frankly, you're shocked you're still alive.
+
+There is an exit to the north and south.|}
+
+let dragon_prelude = {|
+There is a dragon, as silent as stone, and its head as large 
+as your entire body. The cavern itself is enormous and oddly 
+beautiful, with crystals in the wall that glint back at you
+like stars in the sky.|}
+
+let dragon_unarmed = {|
+But you only have a moment to enjoy it. The dragon's head darts 
+down, grabbing your entire body with its long, razor-sharp teeth.
+You feel a moment of embarrassment that you weren't scared off by
+the claw marks, mixed with intense pain.|}
+
+let dragon_with_sword = {|
+The dragon's head looks like it's about to descend upon you when 
+it appears to notice the sword in your hand. Not interested in
+getting its eye poked out, it instead opens its terrifying jaws
+and gouts of fire emerge, engulfing you, and burning your body
+to a crisp. 
+
+Mercifully, it didn't last long.|}
+
+let dragon_with_shield = {|
+With a stunningly fast side-swipe motion, the dragon knocks the 
+shield out of your hand, nearly tacking your hand with it. Then,
+it's enormous jaws open wide and close over your head.
+
+The dragon's tonsils are the last thing you ever see.
+|}
+
+let dragon_with_both = {|
+The dragon looks like it's about to grab you in its teeth, when it
+notices the glint of your sword. Thinking better of it, the dragon's
+jaws open wide and gouts of fire pour out. You hide pathetically
+behind your shield, and, oddly, it works. Indeed, you feel an
+almost mechanical thrum as the shield glows and repels the fire,
+keeping you feeling oddly cool.
+
+The dragon closes its mouth and looks at you, annoyed. With what
+you can only interpret as a shrug of resignation, it seems to come
+to a decision. It's head darts down and it makes a side-swiping 
+motion as if to knock the shield out of your hand. Instinctivly,
+you slash towards the onrushing head with your sword.
+
+Luckily, our sword is fully extended at just the time that the
+dragon's head is about to hit you. The dragon's eye smashes 
+directly into the tip of your sword, driving the tip deep into
+its skull, and nearly breaking your arm.
+
+You were knocked back on the floor, and the wind was knocked out
+of you. But after you catch your breath, you realize that no
+permanent damage was done.
+
+To you, anyway. The dragon seems to be permanently dead. |}
+;;
+
+register Dragon_lair
+  (fun state ->
+     if State.is_fact state Dragon_is_dead
+     then dead_dragon
+     else dragon_prelude)
+  (fun here (state:State.t) ->
+     if State.is_fact state Dragon_is_dead then (
+       match prompt () with
+       | Take "sword" ->
+         sayf {|
+The sword is jammed so deep in the dragon's eye socket
+that you can't yank it out.|};
+         (state,here)
+       | Dir North ->
+         (state,Exit_from_lair)
+       | Dir South ->
+         (state, Corridor_1)
+       | ans ->
+         otherwise ~things:["sword";"dragon"]
+           ans state here
+     ) else (
+       let has_sword = Set.mem state.inventory Sword in
+       let has_shield = Set.mem state.inventory Shield in
+       print_newline ();
+       match has_sword, has_shield with
+       | false, false ->
+         sayf "%s" dragon_unarmed;
+         (state,Game_over)
+       | true, false ->
+         sayf "%s" dragon_with_sword;
+         (state, Game_over)
+       | false, true ->
+         sayf "%s" dragon_with_shield;
+         (state, Game_over)
+       | true, true ->
+         sayf "%s" dragon_with_both;
+         let state =
+           { state with
+             facts = Set.add state.facts Dragon_is_dead
+           ; inventory = Set.remove state.inventory Sword
+           }
+         in
+         (state,here)
+     )
+  )
+;;
+
+register Exit_from_lair
+  (fun _ -> {|
+The corridor out of the lair angles up, and soon enough
+you can feel a change to the taste of the air. Moments
+later you see light, and then, finally, you're above 
+ground.
+
+That was an oddly disturbing experience, but you can't
+help hoping for a future time when your father has had
+the opportunity to write some more rooms.
+
+Congratulations. You've survived to live another day.
+
+If you want to keep on doing that, I recommend you 
+stop going on adventures.|})
+  (fun _ (state:State.t) -> (state,Exit))
 
 
 let () = State.run !state_ref (Road 2)

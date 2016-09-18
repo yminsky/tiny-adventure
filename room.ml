@@ -8,7 +8,8 @@ module T = struct
     | Inside_shed
     | Corridor_1
     | Corridor_2
-    | Dragon_room
+    | Dragon_lair
+    | Exit_from_lair
     | Armory
     | Game_over
     | Exit

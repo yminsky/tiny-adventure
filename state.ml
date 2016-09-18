@@ -66,6 +66,12 @@ let drop t room thing =
     let room_things = Map.add t.room_things ~key:room ~data:things_in_room in
     Some { t with inventory; room_things }
 
+let assert_fact t fact =
+  { t with facts = Set.add t.facts fact }
+
+let is_fact t fact =
+  Set.mem t.facts fact
+
 let print_description (t:t) room =
   begin match Map.find t.descriptions room with
   | None -> ()
@@ -100,7 +106,7 @@ let load_exn t =
   let bytes = in_channel_length file in
   let s = really_input_string file bytes in
   let saveable = 
-    Sexplib.Sexp.of_string s
+    Sexplib.Sexp.of_string (String.strip s)
     |> Saveable.t_of_sexp
   in
   Saveable.inject saveable t
@@ -132,7 +138,7 @@ let rec run'
     | exception exn ->
       sayf "Well, that was unexpected. Your load failed. Here's what I got:";
       print_endline (Exn.to_string exn);
-      run' t ~old room ~game_over
+      run' t ~old old ~game_over
     end
   | _ -> 
     match Map.find t.rooms room with
