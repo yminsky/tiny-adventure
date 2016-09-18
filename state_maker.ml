@@ -1,7 +1,4 @@
 open Base
-open Util
-
-type run_response = State.t * Room.t
 
 module type Room_definition = sig
   val room : Room.t

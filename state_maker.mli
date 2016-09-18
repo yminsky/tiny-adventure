@@ -1,7 +1,6 @@
 (** This module is responsible for putting together the final
     assemblage of rooms. *)
-
-type run_response = State.t * Room.t
+open! Base
 
 module type Room_definition = sig
   val room : Room.t

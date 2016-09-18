@@ -1,4 +1,3 @@
 include Base
 include Util
-include State_maker
-    
+module type Room_definition = State_maker.Room_definition

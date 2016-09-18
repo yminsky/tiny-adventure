@@ -1,5 +1,7 @@
 open Base
 
+type run_response = State.t * Room.t
+
 let printf = Printf.printf
 
 let sayf format =
