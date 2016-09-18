@@ -3,7 +3,7 @@ open Base
 module T = struct
   type road_spots = int
   [@@deriving compare, sexp]
-  let all_of_road_spots = [2]
+  let all_of_road_spots = [0]
 
   (** Special rooms that are really messages to the runtime, rather
       than ordinary rooms. *)

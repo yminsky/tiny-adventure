@@ -55,6 +55,9 @@ You try to go in, but your nose runs painfully into the door.
 Next time you might want to try opening it first.|};
       (state,here)
     )
+  | Look_at (At, "rocks") ->
+    sayf "They look gray and rocky.";
+    (state,here)
   | Look_at (At,"leaves") ->
     if not (State.is_fact state Rusty_key_was_found) then (
       sayf {|

@@ -1,5 +1,7 @@
 open Base
 
+let () = Random.self_init ()
+
 type run_response = State.t * Room.t
 
 let printf = Printf.printf
@@ -75,17 +77,28 @@ fun!
 |}
 let second_help = second_help_prelude ^ third_help
 
-let singular s =
+let plural s =
   match String.get s (String.length s - 1) with
-  | 's' -> false
-  | _ -> true
-  | exception _ -> true
+  | 's' -> true
+  | _ -> false
+  | exception _ -> false
 ;;
 
 
 (** Default handling. This is meant to automate things that you'd
     otherwise have to implement in each room separately. *)
 let otherwise ~things (ans:Answer.t) (state:State.t) (here:Room.t) =
+  let things =
+    let stringify things =
+      Set.map (module String) things ~f:Thing.to_string
+    in
+    let (++) = Set.union in
+    Set.of_list (module String) things
+    ++ stringify state.inventory
+    ++ (Map.find state.room_things here
+        |> Option.value ~default:(Set.empty (module Thing))
+        |> stringify)
+  in
   begin match ans with
   | Dir _ ->
     sayf "You can't go that way.";
@@ -97,11 +110,11 @@ let otherwise ~things (ans:Answer.t) (state:State.t) (here:Room.t) =
     (state,here)
   | Look_at (_,s) ->
     begin
-      if List.mem things s 
+      if Set.mem things s 
       then (
-        if singular s
-        then sayf "It looks like a perfectly ordinary %s." s
-        else sayf "They look like perfectly ordinary %s." s
+        if plural s
+        then sayf "They look like perfectly ordinary %s." s
+        else sayf "It looks like a perfectly ordinary %s." s
       ) else printf "I see no %s here." s
     end;
     (state,here)
@@ -110,17 +123,17 @@ let otherwise ~things (ans:Answer.t) (state:State.t) (here:Room.t) =
     then sayf {|
 You think back to your copy of Land of Stories, and are sad
  you don't have it with you.|}
-    else if List.mem things s 
+    else if Set.mem things s 
     then sayf "That is hardly a gripping read."
     else sayf "I don't see a %s worth reading." s;
     (state,here)
   | Open s ->
-    (if List.mem things s 
+    (if Set.mem things s 
      then sayf "I don't know how to open that."
      else sayf "I don't see a %s to open." s);
     (state,here)
   | Enter s ->
-    if List.mem things s
+    if Set.mem things s
     then (sayf "I can't enter that!")
     else (sayf "I don't see a %s to enter" s);
     (state,here)
