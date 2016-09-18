@@ -12,7 +12,7 @@ are leaves and rocks scattered on the floor in front of the door.
 let plaque_desc = {|
 Welcome intrepid adventurers! If you're here, then surely
 you're interested in a life of awesome exploits and terrifying
-danger that test your mettle. 
+dangers to test your mettle. 
 
 If so, then your first test is whether you can find a way past
 the door.
