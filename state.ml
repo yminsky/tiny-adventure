@@ -147,7 +147,11 @@ let rec run'
     end
   | _ -> 
     match Map.find t.rooms room with
-    | None -> game_over ()
+    | None ->
+      sayf {|
+Odd. I can't seem to go there. Maybe you should report this to your 
+Aba.|};
+      run' t ~old old ~game_over
     | Some f ->
       if not (Room.equal old room) then print_description t room;
       let (state',room') = f t in

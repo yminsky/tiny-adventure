@@ -43,9 +43,15 @@ let rec generic_run n here state : run_response =
   | ans -> 
     otherwise ans ~things:["road";"dirt"] state here
 
-let start_at = -2
-let here = Room.Road start_at
-let things = []
-let desc = generic_desc start_at
-let run = generic_run start_at here
+module Make (M : sig val loc : int end)
+  : State.Room_definition = struct
+  open M
+  let loc = 0
+  let here = Room.Road loc
+  let things = []
+  let desc = generic_desc loc
+  let run = generic_run loc here
+end
 
+module Start = Make(struct let loc = -2 end)
+module Connection = Make(struct let loc = 0 end)    

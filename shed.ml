@@ -16,9 +16,6 @@ danger that test your mettle.
 
 If so, then your first test is whether you can find a way past
 the door.
-
-(Note from the proprieters: it's not yet possible to get through
-the door, but there will be soon.)
 |}
 
 let run (state:State.t) : run_response =
@@ -28,7 +25,7 @@ let run (state:State.t) : run_response =
     sayf "It's a small bronze plaque, with intricate writing on it.";
     (state, here)
   | Read "plaque" ->
-    print_endline plaque_desc;
+    sayf "%s" plaque_desc;
     (state, here)
   | Open "door" ->
     if Set.mem state.inventory Rusty_key then (
