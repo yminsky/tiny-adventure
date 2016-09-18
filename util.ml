@@ -22,6 +22,13 @@ let prompt () =
     in
     Parser.run words
 
+let plural s =
+  match String.get s (String.length s - 1) with
+  | 's' -> true
+  | _ -> false
+  | exception _ -> false
+;;
+
 let drop state room thing_s =
   let action = 
     let open Option.Let_syntax in
@@ -35,7 +42,7 @@ let drop state room thing_s =
     (state,room)
 ;;
 
-let take state room thing_s = 
+let take ~other_things state room thing_s = 
   let action =
     let open Option.Let_syntax in
     let%bind thing = Thing.of_string thing_s in
@@ -44,7 +51,13 @@ let take state room thing_s =
   match action with
   | Some state' -> (state',room)
   | None ->
-    sayf "I can't take that.";
+    if Set.mem other_things thing_s 
+    then (sayf "I can't take that.")
+    else (
+      if plural thing_s
+      then (sayf "There are no %s for me to take." thing_s)
+      else (sayf "There's no %s for me to take." thing_s)
+    );
     (state,room)
 ;;
 
@@ -77,14 +90,6 @@ fun!
 |}
 let second_help = second_help_prelude ^ third_help
 
-let plural s =
-  match String.get s (String.length s - 1) with
-  | 's' -> true
-  | _ -> false
-  | exception _ -> false
-;;
-
-
 (** Default handling. This is meant to automate things that you'd
     otherwise have to implement in each room separately. *)
 let otherwise ~things (ans:Answer.t) (state:State.t) (here:Room.t) =
@@ -103,7 +108,7 @@ let otherwise ~things (ans:Answer.t) (state:State.t) (here:Room.t) =
   | Dir _ ->
     sayf "You can't go that way.";
     (state,here)
-  | Take s -> take state here s
+  | Take s -> take state here s ~other_things:things
   | Drop s -> drop state here s
   | Look ->
     State.print_description state here;
