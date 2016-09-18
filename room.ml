@@ -16,15 +16,15 @@ module T = struct
   [@@deriving compare, sexp, enumerate]
 
   type t =
+    | Special of special
     | Road of road_spots
-    | Shed
-    | Inside_shed
+    | Armory
     | Corridor_1
     | Corridor_2
     | Dragon_lair
     | Exit_from_lair
-    | Armory
-    | Special of special
+    | Inside_shed
+    | Shed
   [@@deriving compare, sexp, enumerate]
 end
 include T
