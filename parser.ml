@@ -30,5 +30,7 @@ let run words : Answer.t =
   | ["inventory"] | ["i"] -> Inventory
   | ["help"] | ["help";"me"] -> Help
 
+  | ["quit"] | ["exit"] -> Exit
+
   | s -> Other s
 

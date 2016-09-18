@@ -22,4 +22,5 @@ type t =
   | Inventory
   | Save
   | Load
+  | Exit
   | Other of string list
