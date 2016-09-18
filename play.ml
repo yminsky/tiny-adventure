@@ -441,7 +441,7 @@ feeling oddly cool.
 
 The dragon closes its mouth and looks at you, annoyed. With what you
 can only interpret as a shrug of resignation, it seems to come to a
-decision. It's head darts down and it makes a side-swiping motion as
+decision. Its head darts down and it makes a side-swiping motion as
 if to knock the shield out of your hand. Instinctivly, you slash
 towards the onrushing head with your sword.
 
