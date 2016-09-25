@@ -52,6 +52,17 @@ let find_things_in_room t room =
   Map.find t.room_things room
   |> Option.value ~default:(Set.empty (module Thing))
 
+let add_to_inventory t thing =
+  { t with inventory = Set.add t.inventory thing }
+
+let add_to_room t room thing =
+  { t with 
+    room_things = 
+      Map.update t.room_things room ~f:(function
+        | None -> Set.singleton (module Thing) thing
+        | Some things -> Set.add things thing)
+  }
+
 let take t room thing =
   let things_in_room = find_things_in_room t room in
   if not (Set.mem things_in_room thing) then None

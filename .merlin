@@ -2,6 +2,7 @@ S .
 B _build
 PKG sexplib
 PKG base
+PKG variantslib
 PKG ppx_deriving.std
 PKG ppx_jane
 PKG variantslib

@@ -26,12 +26,8 @@ type t =
   | Exit
 
   | Other of string
+[@@deriving variants]
 
-let drop x = Drop x
-let enter x = Enter x
-let look_at (x,y) = Look_at (x,y)
-let move x = Move x
+(* @@deriving variants does something odd in the above case, so we
+   need to fix it. *)
 let open_ x = Open x
-let read x = Read x
-let take x = Take x
-                             

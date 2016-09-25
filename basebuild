@@ -3,6 +3,7 @@
 ocamlbuild \
     -pkg sexplib \
     -pkg base \
+    -pkg variantslib \
     -tag "ppx(ppx-jane -as-ppx)" \
     -tag bin_annot \
     -tag short_paths \

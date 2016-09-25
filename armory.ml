@@ -26,18 +26,8 @@ Yawn. Your further examination of the junk bores you to tears.|};
 You look under the piles of wood, and notice a stout-looking, round
 wooden shield. You pick it up for a moment, but, surprised by how
 light it is, you let the shield tumble out of your hands. |};
-      let state =
-        { state with
-          facts = Set.add state.facts Armory_junk_examined
-        ; room_things =
-            Map.update state.room_things here ~f:(fun set_opt ->
-              let set = 
-                Option.value ~default:(Set.empty (module Thing))
-                  set_opt
-              in
-              Set.add set Shield)
-        }
-      in
+      let state = State.assert_fact state Armory_junk_examined in
+      let state = State.add_to_room state here Shield in
       (state,here)
     )
   | ans ->
