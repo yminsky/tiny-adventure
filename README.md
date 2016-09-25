@@ -1,3 +1,5 @@
+# Tiny Adventure #
+
 This is a work in progress, a very small adventure game, mostly made
 for the purposes of playing with my kids. Really, there's almost
 nothing here...
