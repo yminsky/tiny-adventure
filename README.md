@@ -5,7 +5,7 @@ for the purposes of playing with my kids. Really, there's almost
 nothing here...
 
 If you want to understand the basic structure, a good place to start
-is =state.ml=, which is the basic data structure that tracks
+is the `State` module, which is the basic data structure that tracks
 everything about the game.
 
 This is build against a bleeding edge versions of
