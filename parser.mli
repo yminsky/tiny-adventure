@@ -1,3 +1,3 @@
 open! Base
 
-val run : string list -> Answer.t
+val run : string -> Answer.t

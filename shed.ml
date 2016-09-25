@@ -64,7 +64,14 @@ something underneath, though... |}
       sayf "They look brown and crinkly."
     );
     (state,here)
-  | Look_at (Under,"leaves") 
+  | Move "rocks" ->
+    sayf {|
+You move the rocks around aimlessly, eventually finding an arrangement
+you find visually pleasing. You're pretty good at this! Have you
+considered a career for you in Feng Shui?
+|};
+    (state,here)
+  | Look_at (Under,"leaves") | Move "leaves"
     when not (State.is_fact state Rusty_key_was_found) ->
     sayf {|
 You move the leaves aside, and you see a small, rusty key,

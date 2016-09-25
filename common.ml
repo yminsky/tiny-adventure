@@ -4,23 +4,13 @@ let () = Random.self_init ()
 
 type run_response = State.t * Room.t
 
-let printf = Printf.printf
-
 let sayf = State.sayf
 
 let prompt () =
-  printf "\n>>> %!";
+  Printf.printf "\n>>> %!";
   match input_line stdin with
-  | exception _ -> Other []
-  | x ->
-    let words = 
-      let open List.Let_syntax in
-      String.split (String.strip x) ~on:' '
-      >>| String.strip
-      >>| String.lowercase
-      >>| String.filter ~f:Char.is_alphanum
-    in
-    Parser.run words
+  | exception _ -> Other ""
+  | x -> Parser.run x
 
 let plural s =
   match String.get s (String.length s - 1) with
@@ -114,13 +104,12 @@ let otherwise ~things (ans:Answer.t) (state:State.t) (here:Room.t) =
     State.print_description state here;
     (state,here)
   | Look_at (_,s) ->
-    begin
-      if Set.mem things s 
-      then (
-        if plural s
-        then sayf "They look like perfectly ordinary %s." s
-        else sayf "It looks like a perfectly ordinary %s." s
-      ) else printf "I see no %s here." s
+    if Set.mem things s then begin
+      if plural s
+      then sayf "They look like perfectly ordinary %s." s
+      else sayf "It looks like a perfectly ordinary %s." s
+    end else begin 
+      sayf "I see no %s here." s
     end;
     (state,here)
   | Read s ->
@@ -131,6 +120,15 @@ You think back to your copy of Land of Stories, and are sad
     else if Set.mem things s 
     then sayf "That is hardly a gripping read."
     else sayf "I don't see a %s worth reading." s;
+    (state,here)
+  | Move s ->
+    if Set.mem things s then begin
+      sayf "I don't see what that's going to accomplish"
+    end else begin
+      if plural s
+      then sayf "I don't see a %s to move" s
+      else sayf "I don't see any %s to move" s
+    end;
     (state,here)
   | Open s ->
     (if Set.mem things s 

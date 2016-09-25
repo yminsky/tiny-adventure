@@ -1,36 +1,80 @@
 open! Base
 
-let run words : Answer.t =
-  let c = String.concat ~sep:" " in
-  match words with
-  | ["save"] -> Save
-  | ["load"] -> Load
-  | ["go";"north"] | ["n"] | ["north"] -> Dir North
-  | ["go";"south"] | ["s"] | ["south"] -> Dir South
-  | ["go";"west"]  | ["w"] | ["west"]  -> Dir West
-  | ["go";"east"]  | ["e"] | ["east"]  -> Dir East
+(** Convert input into lowercase, with non alphanumeric characters
+    dropped, and excess whitespace removed. *)
+let normalize s = 
+  let words =
+    let open List.Let_syntax in
+    String.split s ~on:' '
+    >>| String.strip
+    >>| String.lowercase
+    >>= (fun s -> if String.(=) s "" then [] else [s])
+    >>| String.filter ~f:Char.is_alphanum
+  in
+  String.concat ~sep:" " words
 
-  | "take" :: "the" :: x | "take" :: x -> Take (c x)
-  | "drop" :: "the" :: x | "drop" :: x -> Drop (c x)
+let starts_with_gen
+      prefixes
+      (make_answer : string option -> Answer.t option)
+      input
+  =
+  List.find_map prefixes ~f:(fun prefix ->
+    match String.chop_prefix ~prefix input with
+    | None -> None
+    | Some suffix ->
+      let suffix = String.strip suffix in
+      if String.(=) suffix "" 
+      then make_answer None
+      else make_answer (Some suffix)
+  )
+;;
 
-  | "read" :: "the" :: x | "read" :: x -> Read (c x)
+let starts_with prefixes make_answer input =
+  let make_answer = function
+    | None -> None
+    | Some x -> Some (make_answer x)
+  in
+  starts_with_gen prefixes make_answer input
+;;
 
-  | "look" :: "at" :: "the" :: x | "look" :: "at" :: x ->
-    Look_at (At, c x)
-  | "look" :: "under" :: "the" :: x | "look" :: "under" :: x ->
-    Look_at (Under, c x)
+let is targets (answer:Answer.t) s =
+  if List.exists targets ~f:(String.(=) s)
+  then Some answer
+  else None
+;;
 
-  | ["look"] | ["look";"around"] -> Look
+let parsers =
+  [ is ["go north" ; "north" ; "n"] (Dir North)
+  ; is ["go south" ; "south" ; "s"] (Dir South)
+  ; is ["go west"  ; "west"  ; "w"] (Dir West)
+  ; is ["go east"  ; "east"  ; "e"] (Dir East)
 
-  | "open" :: "the" :: x | "open" :: x
-  | "unlock" :: "the" :: x | "unlock" :: x
-    -> Open (c x)
-  | "enter" :: "the" :: x | "enter" :: x | "go" :: "in" :: x -> Enter (Some (c x))
+  ; starts_with ["take the";"take"]  Answer.take
+  ; starts_with ["drop the";"drop"]  Answer.drop
+  ; starts_with ["read the";"read"]  Answer.read
+  ; starts_with [ "move the";"move"] Answer.move
 
-  | ["inventory"] | ["i"] -> Inventory
-  | ["help"] | ["help";"me"] -> Help
+  ; is ["look"; "look around"] Look
 
-  | ["quit"] | ["exit"] -> Exit
+  ; is ["save"] Save
+  ; is ["load"] Load
 
-  | s -> Other s
+  ; starts_with ["open the";"open"; "unlock the";"unlock"] Answer.open_
+  ; starts_with ["enter the";"enter";"go in"] (fun obj -> Enter (Some obj))
+  ; is ["enter";"go in"] (Enter None)
 
+  ; starts_with [ "look at the" ; "look at" ] (fun obj -> Look_at (At, obj))
+
+  ; is ["inventory";"i"]  Inventory
+  ; is ["help";"help me"] Help
+  ; is ["quit";"exit"]    Exit
+  ]
+
+let run line =
+  let line = normalize line in
+  let result =
+    List.find_map parsers ~f:(fun parse -> parse line)
+  in
+  match result with
+  | Some x -> x
+  | None -> Other line

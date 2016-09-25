@@ -37,6 +37,9 @@ let rec generic_run n here state : run_response =
   | Dir North -> (add_room (n + 1) state, Road (n + 1))
   | Dir South -> (add_room (n - 1) state, Road (n - 1))
   | Dir East when n = 0 -> (state,Shed)
+  | Look_at (_,"dirt") ->
+    sayf "Not much to say, really. Just your garden variety dirt.";
+    (state,here)
   | Look_at (_,"shed") when n = 0 ->
     sayf "It doesn't look like much from here. Maybe take a closer look?";
     (state,here)

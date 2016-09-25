@@ -16,7 +16,7 @@ practical purpose once upon a time.
 let run (state:State.t) : run_response =
   match prompt () with
   | Dir West -> (state,Corridor_2)
-  | Look_at (Under,("junk"|"wood")) -> 
+  | Look_at (Under,("junk"|"wood")) | Move ("junk"|"wood") -> 
     if State.is_fact state Armory_junk_examined then (
       sayf {|
 Yawn. Your further examination of the junk bores you to tears.|};
