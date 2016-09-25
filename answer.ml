@@ -15,7 +15,7 @@ type t =
   | Look_at of how_to_look * string
   | Read of string
   | Open of string
-  | Enter of string
+  | Enter of string option
   | Help
   | Look
   | Inventory

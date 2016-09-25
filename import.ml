@@ -1,3 +1,3 @@
 include Base
-include Util
+include Common
 module type Room_definition = State.Room_definition

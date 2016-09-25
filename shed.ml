@@ -39,7 +39,7 @@ You try, but it's locked. It's surprisingly sturdy for \n\
 a shack that looks pretty beat up.|};
       (state, here)
     )
-  | Enter "door" ->
+  | Enter (Some "shed") | Enter None ->
     if State.is_fact state Shed_door_is_open then (
       sayf {|
 You stop inside the shed and notice that it seems a good bit bigger

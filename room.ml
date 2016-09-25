@@ -4,9 +4,9 @@ module T = struct
   type road_spots = int
   [@@deriving compare, sexp]
 
-  (* This is a bit of an abuse, since we're not listing all rooms
-     here, but really just the rooms that we expect to have initialized
-     at the start. *)
+  (* This is a bit of an abuse of terminology, since we're not listing
+     all rooms here, but really just the rooms that we expect to have
+     initialized at the start of the game. *)
   let all_of_road_spots = [-2;0]
 
   (** Special rooms that are really messages to the runtime, rather

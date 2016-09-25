@@ -1,8 +1,8 @@
 open Base
 
-type run_response = State.t * Room.t
+(** Some definitions that are useful in a variety of different rooms *)
 
-val printf : ('a, out_channel, unit) format -> 'a
+type run_response = State.t * Room.t
 
 val sayf : ('a, unit, string, unit) format4 -> 'a
 

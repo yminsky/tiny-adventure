@@ -1,8 +1,8 @@
 open Import
 
-(* A cute type-trick to make sure we list all relevant rooms here *)
+(* We walk over [Room.all] to make sure all rooms are set up *)
 let rooms =
-  List.bind Room.all ~f:(function
+  List.concat_map Room.all ~f:(function
     | Special _ -> []
     | Armory         -> [(module Armory : Room_definition)]
     | Corridor_1     -> [(module Corridor_1)]

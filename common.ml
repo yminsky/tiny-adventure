@@ -137,7 +137,10 @@ You think back to your copy of Land of Stories, and are sad
      then sayf "I don't know how to open that."
      else sayf "I don't see a %s to open." s);
     (state,here)
-  | Enter s ->
+  | Enter None ->
+    sayf "I'm not sure precisely where you're trying to go.";
+    (state,here)
+  | Enter (Some s) ->
     if Set.mem things s
     then (sayf "I can't enter that!")
     else (sayf "I don't see a %s to enter" s);

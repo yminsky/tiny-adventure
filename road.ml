@@ -1,7 +1,7 @@
 open Import
 
-(** This module actually manages an infinite set of rooms, but there's
-    just one registered to begin with. *)
+(** This module actually manages an infinite set of rooms, though only
+    finitely many are actually registered at a time. *)
 
 let generic_road_desc = {|
 You are standing on the side of a deserted dirt road.  The sky is 
@@ -9,7 +9,7 @@ gray, and there's a cold wind blowing. The road stretches to the
 north and south.
 |}
 
-let house_desc = {|
+let shed_desc = {|
 You see a small wooden shed off to the east.
 |}
 
@@ -17,7 +17,7 @@ let generic_desc n (_:State.t) =
   if n = 0 then 
     String.strip generic_road_desc
     ^ "\n\n"
-    ^ String.strip house_desc
+    ^ String.strip shed_desc
   else generic_road_desc
 
 let rec generic_run n here state : run_response =

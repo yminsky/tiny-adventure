@@ -25,7 +25,7 @@ let run words : Answer.t =
   | "open" :: "the" :: x | "open" :: x
   | "unlock" :: "the" :: x | "unlock" :: x
     -> Open (c x)
-  | "enter" :: "the" :: x | "enter" :: x | "go" :: "in" :: x -> Enter (c x)
+  | "enter" :: "the" :: x | "enter" :: x | "go" :: "in" :: x -> Enter (Some (c x))
 
   | ["inventory"] | ["i"] -> Inventory
   | ["help"] | ["help";"me"] -> Help
