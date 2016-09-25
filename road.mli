@@ -1,2 +1,3 @@
-module Start : State.Room_definition
-module Connection : State.Room_definition
+open! Import
+
+val make : int -> (module State.Room_definition)

@@ -3,7 +3,11 @@ open Base
 module T = struct
   type road_spots = int
   [@@deriving compare, sexp]
-  let all_of_road_spots = [0]
+
+  (* This is a bit of an abuse, since we're not listing all rooms
+     here, but really just the rooms that we expect to have initialized
+     at the start. *)
+  let all_of_road_spots = [-2;0]
 
   (** Special rooms that are really messages to the runtime, rather
       than ordinary rooms. *)
@@ -29,14 +33,3 @@ module T = struct
 end
 include T
 include Comparable.Make(T)
-
-
-
-(* A little map.
-
-   DR-EX
-   | 
-   C1
-   |
-   IS-C2-AR
-*)

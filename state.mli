@@ -1,9 +1,7 @@
 open! Base
 
-type room_f = t -> t * Room.t
-
-and t = 
-  { rooms        : room_f Map.M(Room).t
+type t = 
+  { rooms        : (t -> t * Room.t) Map.M(Room).t
   ; descriptions : (t -> string) Map.M(Room).t
   ; room_things  : Set.M(Thing).t Map.M(Room).t
   ; inventory    : Set.M(Thing).t

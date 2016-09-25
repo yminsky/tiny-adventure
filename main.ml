@@ -10,10 +10,10 @@ let rooms =
     | Dragon_lair    -> [(module Dragon_lair)]
     | Exit_from_lair -> [(module Exit_from_lair)]
     | Inside_shed    -> [(module Inside_shed)]
-    | Road _         -> [(module Road.Start); (module Road.Connection)]
+    | Road n         -> [Road.make n]
     | Shed           -> [(module Shed)]
   )
 ;;
 
 let () = 
-  State.run (State.of_rooms rooms) Road.Start.here
+  State.run (State.of_rooms rooms) (Road (-2))

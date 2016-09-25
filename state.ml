@@ -1,12 +1,7 @@
 open Base
 
-let sayf format =
-  Printf.ksprintf (fun s -> print_endline (String.strip s)) format
-
-type room_f = t -> t * Room.t
-
-and t = 
-  { rooms        : room_f Map.M(Room).t
+type t = 
+  { rooms        : (t -> t * Room.t) Map.M(Room).t
   ; descriptions : (t -> string) Map.M(Room).t
   ; room_things  : Set.M(Thing).t Map.M(Room).t
   ; inventory    : Set.M(Thing).t
@@ -24,10 +19,10 @@ let empty =
 module Saveable = struct
   type full = t
   (* Sadly, the Saveable.t doesn't have quite everything you need to
-     recover the worold. In particular, the descriptions and rooms
+     recover the world. In particular, the descriptions and rooms
      contain closures that can't be saved easily, and they're also
      allowed to change, specifically for self-modifying parts of the
-     maze.  
+     maze.
 
      The only solution right now is to try to make sure that the entry
      points to the self-modifying bits are there at startup. *)
@@ -81,6 +76,9 @@ let assert_fact t fact =
 
 let is_fact t fact =
   Set.mem t.facts fact
+
+let sayf format =
+  Printf.ksprintf (fun s -> print_endline (String.strip s)) format
 
 let print_description (t:t) room =
   begin match Map.find t.descriptions room with

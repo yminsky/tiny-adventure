@@ -5,4 +5,4 @@ PKG base
 PKG ppx_deriving.std
 PKG ppx_jane
 FLG -short-paths
-FLG -w -4-33-40-41-42-43-34-44
+FLG -w -4-33-40-41-42-43-34-44-3
